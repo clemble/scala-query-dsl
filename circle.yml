@@ -7,8 +7,15 @@ machine:
 dependencies:
   override:
     # Stop preconfigured services
-    - /etc/init.d/redis-server stop
     - sudo stop mongodb
     # Run docker infrastructure
     - sudo pip install --upgrade docker-compose==1.8.2
     - docker-compose up -d
+
+deployment:
+  prod:
+    branch: master
+    commands:
+      - sbt clean coverage test coverageReport
+      - sbt coverageAggregate
+      - sbt coveralls
