@@ -2,60 +2,68 @@ package com.clemble.query.string
 
 import com.clemble.query.core._
 
-trait ExpressionParser {
-
-  val query: PartialFunction[(String, Seq[String]), Expression]
+trait ExpressionParser extends PartialFunction[(String, Seq[String]), Expression] {
 
 }
 
 /**
-  * Not Equals Mongo Query constructor
+  * Not Equals Expression parser
   * 1 Single value NOT equals query
-  *    As in Equals only 2 types of parameters supported String & Boolean
+  *    As in Equals only String supported
   *
   *    Example:
   *      ?name-ne=GE
-  *    will be translated as { "name" : { "$ne" : "GE"}}
+  *    will be translated as NotEquals("name", "GE")
   *
   * 2. Multi value not equals query
   *
   *    Example:
   *      ?name-ne=GE&name-ne=DMR
-  *    will be translated as { "name" : { "$nin" : ["GE", "DMR"] }}
+  *    will be translated as And(NotEquals("name", "GE"), NotEquals("name", "DMR"))
   *
   */
 case class NotEqualsExpressionParser(notEqualsParam: String = "-ne") extends ExpressionParser {
 
-  override val query: PartialFunction[(String, Seq[String]), Expression] = {
-    case (key, Seq(x)) if key.endsWith(notEqualsParam) =>
-      NotEquals(key.substring(0, key.length - notEqualsParam.length), x)
-    case (key, values) if key.endsWith(notEqualsParam) =>
-      values.map(NotEquals(key.substring(0, key.length - notEqualsParam.length), _)).
-        foldRight[Expression](Empty)((a, b) => a.and(b))
+  override def isDefinedAt(x: (String, Seq[String])) = x._1.endsWith(notEqualsParam) && !x._2.isEmpty
+
+  override def apply(x: (String, Seq[String])) = {
+    x match {
+      case (key, Seq(x)) =>
+        val keyStr = key.substring(0, key.length - notEqualsParam.length)
+        NotEquals(keyStr, x)
+      case (key, values)=>
+        val keyStr = key.substring(0, key.length - notEqualsParam.length)
+        values.
+          map(NotEquals(keyStr, _)).
+          foldRight[Expression](Empty)((a, b) => a.and(b))
+    }
   }
 
 }
 
 
 /**
-  * Default Mongo Query Constructor (simple equals)
-  * 1 Single value equals query
-  * Currently only 2 types of parameters supported String & Boolean
+  * Equals expression parser. Single value equals query
+  * Currently only String supported
   *
   *    Example:
-  *      ?name=GE&required=false
-  *    will be translated as { "name" : "GE", "required" : false }
+  *      ?name=GE
+  *    will be translated as Equals("name", "GE")
   *
   * 2. Multi value equals query
   * For this only String parameters supported
   *
   *    Example:
   *      ?name=GE&name=General Electric
-  *    will be translated as { "name" : { "$in": ["GE", "General Electric"]}
+  *    will be translated as an error, since this case can't happen
   */
 case object EqualsExpressionParser extends ExpressionParser {
 
-  override val query: PartialFunction[(String, Seq[String]), Expression] = {
+  override def isDefinedAt(x: (String, Seq[String])) = true
+
+  override def apply(x :(String, Seq[String])) = x match {
+    case (key, Seq(x)) =>
+      Equals(key, x)
     case (key, values) =>
       values.map(Equals(key, _)).foldRight[Expression](Empty)((a, b) => a.and(b))
   }
@@ -63,23 +71,25 @@ case object EqualsExpressionParser extends ExpressionParser {
 }
 
 /**
-  *  Greater then queries
+  *  Greater then equals queries
   *  Similar to less then, all value will be treated as numbers
   *
   *    Example:
   *      ?price-gte=100
-  *    will be translated as { "price" : { "gte" : 100 }}
+  *    will be translated as GreaterThenEquals("price", 100)
   *
   *    If multiple query parameters were specified, the highest value will be taken
   *
   *    Example:
   *      ?price-gte=100&price-gte=190
-  *    will be translated as { "price" : { "gte" : 190 }}
+  *    will be translated as GreaterThenEquals("price", 190)
   */
-case class GreaterThenEqualsMongoQueryConstructor(gteParam: String = "-gte") extends ExpressionParser {
+case class GreaterThenEqualsExpressionParser(gteParam: String = "-gte") extends ExpressionParser {
 
-  override val query: PartialFunction[(String, Seq[String]), Expression] = {
-    case (key, values) if key.endsWith(gteParam) =>
+  override def isDefinedAt(x: (String, Seq[String])) = x._1.endsWith(gteParam)
+
+  override def apply(x: (String, Seq[String])): Expression = x match {
+    case (key, values) =>
       val maxValue = values.map(BigDecimal(_)).max
       GreaterThenEquals(key.substring(0, key.length - gteParam.length), maxValue)
   }
@@ -92,24 +102,23 @@ case class GreaterThenEqualsMongoQueryConstructor(gteParam: String = "-gte") ext
   *
   *   Example:
   *    ?price-lte=100
-  *   will be translated as { "price" : { "$lte" : 100 }}
+  *   will be translated as LessThenEquals("price", 100)
   *
   *   If multiple query parameters were specified, the lowest value will be taken
   *
   *   Example:
   *    ?price-lte=100&price-lte=50
-  *   will be translated as { "price" : { "$lte" : 50 }}
+  *   will be translated as LessThenEquals("price", 50)
   *
-  *   If value for the date is stored as long in mongo, $lte would also work with millisecond query
-  *
-  *   Example:
   *    ?purchaseDate-lte=1231424124244
-  *   will be translated as { "purchaseDate" : { "$lte" : 1231424124244 }}
+  *   will be translated as LessThenEquals("purchaseDate", 1231424124244)
   */
-case class LessThenEqualsMongoQueryConstructor(lteParam: String = "-lte") extends ExpressionParser {
+case class LessThenEqualsExpressionParser(lteParam: String = "-lte") extends ExpressionParser {
 
-  override val query: PartialFunction[(String, Seq[String]), Expression] = {
-    case (key, values) if key.endsWith(lteParam) =>
+  override def isDefinedAt(x: (String, Seq[String])) = x._1.endsWith(lteParam)
+
+  override def apply(x : (String, Seq[String])): Expression = x match {
+    case (key, values) =>
       val minValue = values.map(BigDecimal(_)).min
       LessThenEquals(key.substring(0, key.length - lteParam.length), minValue)
   }

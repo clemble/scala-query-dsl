@@ -27,7 +27,7 @@ case class QueryParser(
     val expressions: Iterable[Option[Expression]] = for {
       query <- expressionQuery
     } yield {
-      expressionParser.find(_.query.isDefinedAt(query)).map(_.query(query))
+      expressionParser.find(_.isDefinedAt(query)).map(_(query))
     }
     val where = expressions.foldLeft[Expression](Empty)((a, b) => a and(b.get))
     Query(

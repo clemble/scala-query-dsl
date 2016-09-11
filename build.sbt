@@ -4,18 +4,27 @@ version := "0.0.1"
 
 scalaVersion := "2.11.8"
 
+lazy val commonSettings = Seq(
+  libraryDependencies ++= Seq(
+    "org.specs2" %% "specs2-core" % "3.7" % "test"
+  )
+)
+
 lazy val core = project.
   settings()
 
 lazy val query = project.
-  settings().
+  settings(commonSettings: _*).
   dependsOn(core % "compile->compile;test->test")
 
 lazy val memory = project.
-  settings().
+  settings(commonSettings: _*).
   dependsOn(core % "compile->compile;test->test")
 
 lazy val mongo = project.
+  settings(commonSettings: _*).
   settings(
-    libraryDependencies += "org.reactivemongo" % "reactivemongo_2.11" % "0.11.14"
+    libraryDependencies ++= Seq(
+      "org.reactivemongo" % "reactivemongo_2.11" % "0.11.14"
+    )
   ).dependsOn(core % "compile->compile;test->test")
