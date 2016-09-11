@@ -6,7 +6,7 @@ machine:
 
 dependencies:
   override:
-    - sudo stop mongodb
+    - sudo service mongod stop
     - docker-compose up -d
 
 deployment:
