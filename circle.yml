@@ -6,10 +6,8 @@ machine:
 
 dependencies:
   override:
-    # Stop preconfigured services
-    - sudo stop mongodb
     # Run docker infrastructure
-    - sudo pip install --upgrade docker-compose==1.8.2
+    - sudo pip install --upgrade docker-compose==1.6.2
     - docker-compose up -d
 
 deployment:
