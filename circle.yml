@@ -6,8 +6,6 @@ machine:
 
 dependencies:
   override:
-    # Run docker infrastructure
-    - sudo pip install --upgrade docker-compose==1.4.0
     - docker-compose up -d
 
 deployment:
