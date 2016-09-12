@@ -7,6 +7,7 @@ package com.clemble.query.core
   * @param pageSize - page size
   */
 case class PaginationParams(page: Int, pageSize: Int) {
-  def isValid() = page >= 0 && pageSize > 0
+  require(page >= 0, s"Page must be greater or equal to 0, got ${page}")
+  require(pageSize > 0, s"Page size must be more then 0, got ${pageSize}")
   def offset() = page * pageSize
 }

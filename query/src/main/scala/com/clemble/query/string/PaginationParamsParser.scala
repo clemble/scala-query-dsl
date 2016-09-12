@@ -41,19 +41,6 @@ case class PaginationParamsParser(
     PaginationParams(page, pageSize)
   }
 
-  private def readPagination(query: Map[String, Seq[String]]): (Int, Int) = {
-    val pageOpt = query.get(fromParam).flatMap(_.headOption.map(_.toInt))
-    val pageSizeOpt = query.get(sizeParam).flatMap(_.headOption.map(_.toInt))
-    // Step 2. Extract
-    (pageOpt, pageSizeOpt) match {
-      case (Some(page), Some(pageSize)) => page -> pageSize
-      case (Some(page), None) => page -> defaultSize
-      case (None, Some(pageSize)) => defaultPage -> pageSize
-      case (None, None) => defaultPage -> maxSize
-    }
-
-  }
-
   private def validateParams(query: Map[String, Seq[String]]) = {
     // page & page size can be defined only once
     require(query.get(fromParam).map(_.size).getOrElse(0) <= 1)

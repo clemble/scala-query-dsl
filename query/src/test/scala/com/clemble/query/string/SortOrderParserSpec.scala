@@ -11,18 +11,27 @@ class SortOrderParserSpec extends Specification {
     parser.isDefinedAt("sort" -> Seq.empty[String]) shouldEqual true
     parser.isDefinedAt("sort!" -> Seq.empty[String]) shouldEqual false
     parser.isDefinedAt("!sort" -> Seq.empty[String]) shouldEqual false
+
+  }
+
+  "not accept other params" in {
+    parser("yo" -> Seq.empty) should throwA[IllegalArgumentException]
+  }
+
+  "ignore empty" in {
+    parser("sort" -> Seq.empty) shouldEqual List.empty
   }
 
   "ASC by default" in {
-    parser.apply("sort" -> Seq("A")) shouldEqual List(Ascending("A"))
+    parser("sort" -> Seq("A")) shouldEqual List(Ascending("A"))
   }
 
   "DSC support" in {
-    parser.apply("sort" -> Seq("!A")) shouldEqual List(Descending("A"))
+    parser("sort" -> Seq("!A")) shouldEqual List(Descending("A"))
   }
 
   "read combinations" in {
-    parser.apply("sort" -> Seq("A", "!B")) shouldEqual List(Ascending("A"), Descending("B"))
+    parser("sort" -> Seq("A", "!B")) shouldEqual List(Ascending("A"), Descending("B"))
   }
 
 }
