@@ -1,6 +1,6 @@
 package com.clemble.query.string
 
-import com.clemble.query.core.{Exclude, Include, Projection}
+import com.clemble.query.core.{SortOrder, Exclude, Include, Projection}
 
 /**
   * Basic extraction of projection configurations
@@ -29,38 +29,34 @@ import com.clemble.query.core.{Exclude, Include, Projection}
   *
   * @return valid projection
   */
-case class ProjectionParser(includeParam: String = "fields", excludeParam: String = "fields-ex") {
+case class ProjectionParser(includeParam: String = "fields", excludeParam: String = "fields-ex") extends PartialFunction[(String, Seq[String]), List[Projection]] {
 
-  def toProjection(query: Map[String, Seq[String]]): List[Projection] = {
-    val includeProjections = readIncludeParams(query)
-    val excludeProjections = readExcludeParams(query)
-    includeProjections ++ excludeProjections
+  override def isDefinedAt(x: (String, Seq[String])): Boolean = x._1 == includeParam || x._2 == excludeParam
+
+  def apply(query: (String, Seq[String])): List[Projection] = {
+    if (isDefinedAt(query))
+      throw new IllegalArgumentException(s"Expected $includeParam or $excludeParam")
+    val (key, fields) = query
+    if(key == includeParam)
+      readIncludeParams(fields)
+    else
+      readExcludeParams(fields)
   }
 
-  private def readExcludeParams(query: Map[String, Seq[String]]): List[Exclude] = {
-    query.get(excludeParam) match {
-      case Some(fields) =>
-        val allExcludedProjections = fields.
-          flatMap(_.split(",")).
-          map(_.trim()).
-          map(field => Exclude(field))
-        allExcludedProjections.toList
-      case None =>
-        List.empty[Exclude]
-    }
+  private def readExcludeParams(fields: Seq[String]): List[Exclude] = {
+    val allExcludedProjections = fields.
+      flatMap(_.split(",")).
+      map(_.trim()).
+      map(field => Exclude(field))
+    allExcludedProjections.toList
   }
 
-  private def readIncludeParams(query: Map[String, Seq[String]]): List[Include] = {
-    query.get(includeParam) match {
-      case Some(fields) =>
-        val allIncludedProjections = fields.
-          flatMap(_.split(",")).
-          map(_.trim()).
-          map(field => Include(field))
-        allIncludedProjections.toList
-      case None =>
-        List.empty[Include]
-    }
+  private def readIncludeParams(fields: Seq[String]): List[Include] = {
+    val allIncludedProjections = fields.
+      flatMap(_.split(",")).
+      map(_.trim()).
+      map(field => Include(field))
+    allIncludedProjections.toList
   }
 
 }
