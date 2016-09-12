@@ -9,7 +9,6 @@ sealed trait Expression {
     (this, other) match {
       case (exp, Empty) => exp
       case (Empty, exp) => exp
-      case (Empty, Empty) => Empty
       case (And(fExps), And(sExps)) => And(fExps ++ sExps)
       case (And(expressions), exp) => And(exp :: expressions)
       case (exp, And(expressions)) => And(exp :: expressions)
@@ -21,7 +20,7 @@ sealed trait Expression {
     (this, other) match {
       case (exp, Empty) => exp
       case (Empty, exp) => exp
-      case (Or(fExps), Or(sExps)) => Or(sExps ++ fExps)
+      case (Or(fExps), Or(sExps)) => Or(fExps ++ sExps)
       case (Or(expressions), exp) => Or(exp :: expressions)
       case (exp, Or(expressions)) => Or(exp :: expressions)
       case (fExp, sExp) => Or(List(fExp, sExp))
