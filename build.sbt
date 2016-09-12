@@ -11,6 +11,7 @@ lazy val commonSettings = Seq(
 )
 
 lazy val core = project.
+  settings(commonSettings: _*).
   settings()
 
 lazy val query = project.

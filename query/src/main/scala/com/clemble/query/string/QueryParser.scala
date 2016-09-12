@@ -8,13 +8,13 @@ import scala.collection.immutable.Iterable
   * Created by mavarazy on 9/10/16.
   */
 case class QueryParser(
-                      expressionParser: List[ExpressionParser],
+                      expressionParser: List[PartialFunction[(String, Seq[String]), Expression]],
                       projectionParser: ProjectionParser,
                       paginationParser: PaginationParamsParser,
                       sortParser: SortOrderParser
                       ) {
 
-  val ignore = List(
+  private val ignore = List(
     sortParser.sortParam,
     paginationParser.fromParam,
     paginationParser.sizeParam,
@@ -22,14 +22,13 @@ case class QueryParser(
     projectionParser.includeParam
   )
 
+  private val expression = expressionParser.
+    foldRight(PartialFunction.empty[(String, Seq[String]), Expression])
+    { (a, b) => a orElse b }
+
   def parse(query: Map[String, Seq[String]]): Query = {
     val expressionQuery = query.filterKeys(!ignore.contains(_))
-    val expressions: Iterable[Option[Expression]] = for {
-      query <- expressionQuery
-    } yield {
-      expressionParser.find(_.isDefinedAt(query)).map(_(query))
-    }
-    val where = expressions.foldLeft[Expression](Empty)((a, b) => a and(b.get))
+    val where = expressionQuery.foldLeft[Expression](Empty)((a, b) => a and expression(b))
     Query(
       where,
       pagination = paginationParser.toPage(query),

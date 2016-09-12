@@ -27,16 +27,13 @@ case class NotEqualsExpressionParser(notEqualsParam: String = "-ne") extends Exp
   override def isDefinedAt(x: (String, Seq[String])) = x._1.endsWith(notEqualsParam) && !x._2.isEmpty
 
   override def apply(x: (String, Seq[String])) = {
-    x match {
-      case (key, Seq(x)) =>
-        val keyStr = key.substring(0, key.length - notEqualsParam.length)
-        NotEquals(keyStr, x)
-      case (key, values)=>
-        val keyStr = key.substring(0, key.length - notEqualsParam.length)
-        values.
-          map(NotEquals(keyStr, _)).
-          foldRight[Expression](Empty)((a, b) => a.and(b))
-    }
+    val (key, values) = x
+    if (!key.endsWith(notEqualsParam))
+      throw new IllegalArgumentException(s"Ending must be $notEqualsParam")
+    val keyStr = key.substring(0, key.length - notEqualsParam.length)
+    values.
+      map(NotEquals(keyStr, _)).
+      foldRight[Expression](Empty)((a, b) => a.and(b))
   }
 
 }
