@@ -12,14 +12,14 @@ trait ExpressionParser extends PartialFunction[(String, Seq[String]), Expression
   *    As in Equals only String supported
   *
   *    Example:
-  *      ?name-ne=GE
-  *    will be translated as NotEquals("name", "GE")
+  *      ?name-ne=A
+  *    will be translated as NotEquals("name", "A")
   *
   * 2. Multi value not equals query
   *
   *    Example:
-  *      ?name-ne=GE&name-ne=DMR
-  *    will be translated as And(NotEquals("name", "GE"), NotEquals("name", "DMR"))
+  *      ?name-ne=A&name-ne=B
+  *    will be translated as And(NotEquals("name", "A"), NotEquals("name", "B"))
   *
   */
 case class NotEqualsExpressionParser(notEqualsParam: String = "-ne") extends ExpressionParser {
@@ -56,13 +56,13 @@ case class NotEqualsExpressionParser(notEqualsParam: String = "-ne") extends Exp
   */
 case object EqualsExpressionParser extends ExpressionParser {
 
-  override def isDefinedAt(x: (String, Seq[String])) = true
+  override def isDefinedAt(x: (String, Seq[String])) = x._2.length <= 1
 
-  override def apply(x :(String, Seq[String])) = x match {
-    case (key, Seq(x)) =>
-      Equals(key, x)
-    case (key, values) =>
-      values.map(Equals(key, _)).foldRight[Expression](Empty)((a, b) => a.and(b))
+  override def apply(x :(String, Seq[String])) = {
+    val (key, values) = x
+    if (values.length > 1)
+      throw new IllegalArgumentException("Can't equal 2 things at the same time")
+    values.map(Equals(key, _)).foldRight[Expression](Empty)((a, b) => a.and(b))
   }
 
 }

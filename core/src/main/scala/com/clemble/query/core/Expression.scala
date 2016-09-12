@@ -34,7 +34,18 @@ case object Empty extends Expression
 sealed trait BooleanExpression extends Expression
 
 case class And(conditions: List[Expression]) extends BooleanExpression
+object And {
+  def apply(conditions: Expression*): And = {
+    new And(conditions.toList)
+  }
+}
+
 case class Or(conditions: List[Expression]) extends BooleanExpression
+object Or {
+  def apply(conditions: Expression*): Or = {
+    new Or(conditions.toList)
+  }
+}
 
 case class Equals(field: String, value: String) extends Expression
 case class NotEquals(field: String, value: String) extends Expression

@@ -1,6 +1,6 @@
 package com.clemble.query.string
 
-import com.clemble.query.core.NotEquals
+import com.clemble.query.core.{Empty, And, NotEquals}
 import org.specs2.mutable.Specification
 
 class NotEqualsExpressionParserSpec extends Specification {
@@ -14,7 +14,9 @@ class NotEqualsExpressionParserSpec extends Specification {
   }
 
   "reads values" in {
+    parser("some-ne" -> Seq()) shouldEqual Empty
     parser("some-ne" -> Seq("A")) shouldEqual NotEquals("some", "A")
+    parser("some-ne" -> Seq("A", "B")) shouldEqual And(NotEquals("some", "A"), NotEquals("some", "B"))
   }
 
   "invalidates" in {
