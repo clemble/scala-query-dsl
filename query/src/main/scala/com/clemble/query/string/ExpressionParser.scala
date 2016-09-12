@@ -85,10 +85,14 @@ case class GreaterThenEqualsExpressionParser(gteParam: String = "-gte") extends 
 
   override def isDefinedAt(x: (String, Seq[String])) = x._1.endsWith(gteParam)
 
-  override def apply(x: (String, Seq[String])): Expression = x match {
-    case (key, values) =>
-      val maxValue = values.map(BigDecimal(_)).max
-      GreaterThenEquals(key.substring(0, key.length - gteParam.length), maxValue)
+  override def apply(x: (String, Seq[String])): Expression = {
+    val (key, values) = x
+    if (!key.endsWith(gteParam))
+      throw new IllegalArgumentException(s"Ending must be $gteParam")
+    if (values.isEmpty)
+      return Empty
+    val maxValue = values.map(BigDecimal(_)).max
+    GreaterThenEquals(key.substring(0, key.length - gteParam.length), maxValue)
   }
 
 }
@@ -106,18 +110,19 @@ case class GreaterThenEqualsExpressionParser(gteParam: String = "-gte") extends 
   *   Example:
   *    ?price-lte=100&price-lte=50
   *   will be translated as LessThenEquals("price", 50)
-  *
-  *    ?purchaseDate-lte=1231424124244
-  *   will be translated as LessThenEquals("purchaseDate", 1231424124244)
   */
 case class LessThenEqualsExpressionParser(lteParam: String = "-lte") extends ExpressionParser {
 
   override def isDefinedAt(x: (String, Seq[String])) = x._1.endsWith(lteParam)
 
-  override def apply(x : (String, Seq[String])): Expression = x match {
-    case (key, values) =>
-      val minValue = values.map(BigDecimal(_)).min
-      LessThenEquals(key.substring(0, key.length - lteParam.length), minValue)
+  override def apply(x : (String, Seq[String])): Expression = {
+    val (key, values) = x
+    if (!key.endsWith(lteParam))
+      throw new IllegalArgumentException(s"Ending must be $lteParam")
+    if (values.isEmpty)
+      return Empty
+    val maxValue = values.map(BigDecimal(_)).min
+    LessThenEquals(key.substring(0, key.length - lteParam.length), maxValue)
   }
 
 }
