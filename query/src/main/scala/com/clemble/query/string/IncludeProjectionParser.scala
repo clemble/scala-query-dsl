@@ -29,29 +29,14 @@ import com.clemble.query.core.{SortOrder, Exclude, Include, Projection}
   *
   * @return valid projection
   */
-case class ProjectionParser(includeParam: String = "fields", excludeParam: String = "fields-ex") extends PartialFunction[(String, Seq[String]), List[Projection]] {
+case class IncludeProjectionParser(includeParam: String = "fields") extends PartialFunction[(String, Seq[String]), List[Projection]] {
 
-  override def isDefinedAt(x: (String, Seq[String])): Boolean = x._1 == includeParam || x._2 == excludeParam
+  override def isDefinedAt(x: (String, Seq[String])): Boolean = x._1 == includeParam
 
   def apply(query: (String, Seq[String])): List[Projection] = {
-    if (isDefinedAt(query))
-      throw new IllegalArgumentException(s"Expected $includeParam or $excludeParam")
     val (key, fields) = query
-    if(key == includeParam)
-      readIncludeParams(fields)
-    else
-      readExcludeParams(fields)
-  }
-
-  private def readExcludeParams(fields: Seq[String]): List[Exclude] = {
-    val allExcludedProjections = fields.
-      flatMap(_.split(",")).
-      map(_.trim()).
-      map(field => Exclude(field))
-    allExcludedProjections.toList
-  }
-
-  private def readIncludeParams(fields: Seq[String]): List[Include] = {
+    if (key != includeParam)
+      throw new IllegalArgumentException(s"Expected $includeParam instead of $key")
     val allIncludedProjections = fields.
       flatMap(_.split(",")).
       map(_.trim()).

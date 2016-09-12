@@ -8,18 +8,19 @@ import scala.collection.immutable.Iterable
   * Created by mavarazy on 9/10/16.
   */
 case class QueryParser(
-                      expressionParser: List[PartialFunction[(String, Seq[String]), Expression]],
-                      projectionParser: ProjectionParser,
-                      paginationParser: PaginationParamsParser,
-                      sortParser: SortOrderParser
+                        expressionParser: List[PartialFunction[(String, Seq[String]), Expression]],
+                        includeProjection: IncludeProjectionParser,
+                        excludeProjection: ExcludeProjectionParser,
+                        paginationParser: PaginationParamsParser,
+                        sortParser: SortOrderParser
                       ) {
 
   private val ignore = List(
     sortParser.sortParam,
     paginationParser.fromParam,
     paginationParser.sizeParam,
-    projectionParser.excludeParam,
-    projectionParser.includeParam
+    includeProjection.includeParam,
+    excludeProjection.excludeParam
   )
 
   private val expression = expressionParser.
@@ -32,7 +33,7 @@ case class QueryParser(
     Query(
       where,
       pagination = paginationParser.toPage(query),
-      projection = query.collect(projectionParser).flatten.toList,
+      projection = (query.collect(includeProjection).flatten ++ query.collect(excludeProjection).flatten).toList,
       sort = query.collect(sortParser).flatten.toList
     )
   }
