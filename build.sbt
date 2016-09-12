@@ -5,6 +5,8 @@ version := "0.0.1"
 scalaVersion := "2.11.8"
 
 lazy val commonSettings = Seq(
+  scalaVersion := "2.11.8",
+
   libraryDependencies ++= Seq(
     "org.specs2" %% "specs2-core" % "3.7" % "test"
   )
@@ -26,6 +28,6 @@ lazy val mongo = project.
   settings(commonSettings: _*).
   settings(
     libraryDependencies ++= Seq(
-      "org.reactivemongo" % "reactivemongo_2.11" % "0.11.14"
+      "com.typesafe.play" %% "play-json" % "2.5.6"
     )
   ).dependsOn(core % "compile->compile;test->test")

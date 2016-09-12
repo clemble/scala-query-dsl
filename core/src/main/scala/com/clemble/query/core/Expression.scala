@@ -52,9 +52,9 @@ case class NotEquals(field: String, value: String) extends Expression
 
 sealed trait ArithmeticExpression
 
-case class GreaterThen(field: String, value: Number) extends Expression
-case class GreaterThenEquals(field: String, value: Number) extends Expression
-case class LessThen(field: String, value: Number) extends Expression
-case class LessThenEquals(field: String, value: Number) extends Expression
+case class GreaterThen(field: String, value: BigDecimal) extends Expression
+case class GreaterThenEquals(field: String, value: BigDecimal) extends Expression
+case class LessThen(field: String, value: BigDecimal) extends Expression
+case class LessThenEquals(field: String, value: BigDecimal) extends Expression
 
 
