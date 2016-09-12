@@ -10,7 +10,7 @@ package com.clemble.query.core
   */
 case class Query(
                   where: Expression,
-                  pagination: PaginationParams = PaginationParams(0, 25),
+                  pagination: PaginationParams = PaginationParams(0, Int.MaxValue),
                   projection: List[Projection] = List.empty[Projection],
                   sort: List[SortOrder] = List.empty[SortOrder]
 )

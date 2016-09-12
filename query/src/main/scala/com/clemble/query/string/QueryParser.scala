@@ -39,3 +39,21 @@ case class QueryParser(
   }
 
 }
+
+object QueryParser {
+
+  def DEFAULT = QueryParser(
+    List(
+      new GreaterThenExpressionParser(),
+      new GreaterThenEqualsExpressionParser(),
+      new LessThenEqualsExpressionParser(),
+      new LessThenExpressionParser(),
+      new NotEqualsExpressionParser(),
+      EqualsExpressionParser
+    ),
+    new IncludeProjectionParser(),
+    new ExcludeProjectionParser(),
+    new PaginationParamsParser(),
+    new SortOrderParser()
+  )
+}
