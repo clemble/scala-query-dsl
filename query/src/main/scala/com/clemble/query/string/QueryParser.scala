@@ -33,7 +33,7 @@ case class QueryParser(
       where,
       pagination = paginationParser.toPage(query),
       projection = projectionParser.toProjection(query),
-      sort = sortParser.toSort(query)
+      sort = query.collect(sortParser).flatten.toList
     )
   }
 

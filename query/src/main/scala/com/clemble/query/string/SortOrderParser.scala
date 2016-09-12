@@ -32,22 +32,21 @@ import com.clemble.query.core.{Descending, Ascending, SortOrder}
   *
   * @return sort JsObject interpretable by mongo
   */
-case class SortOrderParser (sortParam: String = "sort"){
+case class SortOrderParser (sortParam: String = "sort") extends PartialFunction[(String, Seq[String]), List[SortOrder]] {
 
-  def toSort(sortQueryParams: Map[String, Seq[String]]): List[SortOrder] = {
+  override def isDefinedAt(x: (String, Seq[String])): Boolean = x._1 == sortParam
+
+  override def apply(x: (String, Seq[String])): List[SortOrder] = {
+    val (key, columns) = x
     // Step 1. Filter sort key
-    sortQueryParams.get(sortParam) match {
-      case Some(columns) =>
-        val fieldSort = columns.
-          flatMap(_.split(",")).
-          map(_.trim()).
-          map(toSortDirection)
-        // Step 2. Returning generated field sort query
-        fieldSort.toList
-      case None =>
-        // Case 2. No explicit ordering specified
-        List.empty[SortOrder]
-    }
+    if (key != sortParam)
+      throw new IllegalArgumentException(s"Expected $sortParam instead of $key")
+    val fieldSort = columns.
+      flatMap(_.split(",")).
+      map(_.trim()).
+      map(toSortDirection)
+    // Step 2. Returning generated field sort query
+    fieldSort.toList
   }
 
   private def toSortDirection(column: String): SortOrder = {
