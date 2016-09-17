@@ -3,3 +3,10 @@ mongo:
   restart: always
   ports:
     - "27017:27017"
+
+elasticsearch:
+  image: elasticsearch:2.3.5
+  restart: always
+  ports:
+    - "9200:9200"
+    - "9300:9300"

@@ -43,7 +43,7 @@ class MongoJSONQueryTranslator extends QueryTranslator[JsObject] {
   override def translate(query: Expression): JsObject = {
     query match {
       case And(conditions) =>
-        JsObject(conditions.map(translate).flatMap(obj => obj.fields))
+        Json.obj("$and" -> conditions.map(translate))
       case Or(conditions) =>
         Json.obj("$or" -> conditions.map(translate))
       case NotEquals(field, value) =>

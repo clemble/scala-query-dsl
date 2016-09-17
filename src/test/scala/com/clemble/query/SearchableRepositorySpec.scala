@@ -163,6 +163,35 @@ trait SearchableRepositorySpec extends Specification with BeforeAfterAll {
       val askForTwo = readAsList(Query(Empty, sort = List(Ascending("name")), pagination = PaginationParams(0, 2)))
       askForTwo should containTheSameElementsAs(employees.take(2))
     }
+
+  }
+
+  "And" should {
+
+    "combine less then" in {
+      val lessThen = readAsList(Query(And(LessThen("salary", 150), LessThen("salary", 110))))
+      lessThen shouldEqual List(employees.head)
+    }
+
+    "combine greater then" in {
+      val greaterThen = readAsList(Query(And(GreaterThen("salary", 150), GreaterThen("salary", 110))))
+      greaterThen shouldEqual List(employees.last)
+    }
+
+    "take in between" in {
+      val lessThen = readAsList(Query(And(LessThen("salary", 130), GreaterThen("salary", 100))))
+      lessThen shouldEqual List(employees(1))
+    }
+
+  }
+
+  "Or" should {
+
+    "combine greater and less in" in {
+      val firstAndLast = readAsList(Query(Or(GreaterThen("salary", 150), LessThen("salary", 110))))
+      firstAndLast should containTheSameElementsAs(List(employees.head, employees.last))
+    }
+
   }
 
 }
