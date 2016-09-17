@@ -1,6 +1,6 @@
-package com.clemble.query.core.parser
+package com.clemble.query.parser
 
-import com.clemble.query.core.model.{Empty, Equals}
+import com.clemble.query.model.{Equals, Empty}
 import org.specs2.mutable.Specification
 
 class EqualsExpressionParserSpec extends Specification {

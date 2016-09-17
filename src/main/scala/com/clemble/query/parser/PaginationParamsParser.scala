@@ -1,6 +1,6 @@
-package com.clemble.query.core.parser
+package com.clemble.query.parser
 
-import com.clemble.query.core.model.PaginationParams
+import com.clemble.query.model.PaginationParams
 
 /**
   * Created by mavarazy on 9/17/16.

@@ -1,7 +1,6 @@
 package com.clemble.query.model
 
-import com.clemble.query.core.model.Include
-import com.clemble.query.core.parser.IncludeProjectionParser
+import com.clemble.query.parser.IncludeProjectionParser
 import org.specs2.mutable.Specification
 
 class IncludeProjectionSpec extends Specification {

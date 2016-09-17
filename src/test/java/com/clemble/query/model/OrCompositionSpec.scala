@@ -1,6 +1,5 @@
 package com.clemble.query.model
 
-import com.clemble.query.core.model.{Equals, Or}
 import org.specs2.mutable.Specification
 
 class OrCompositionSpec extends Specification {

@@ -1,7 +1,6 @@
-package com.clemble.query.core.parser
+package com.clemble.query.parser
 
-import com.clemble.query.core.Include
-import com.clemble.query.core.model.{Include, Projection}
+import com.clemble.query.model.{Exclude, Projection}
 
 /**
   * Basic extraction of projection configurations
@@ -30,19 +29,19 @@ import com.clemble.query.core.model.{Include, Projection}
   *
   * @return valid projection
   */
-case class IncludeProjectionParser(includeParam: String = "fields") extends PartialFunction[(String, Seq[String]), List[Projection]] {
+case class ExcludeProjectionParser(excludeParam: String = "fields-ex") extends PartialFunction[(String, Seq[String]), List[Projection]] {
 
-  override def isDefinedAt(x: (String, Seq[String])): Boolean = x._1 == includeParam
+  override def isDefinedAt(x: (String, Seq[String])): Boolean = x._1 == excludeParam
 
   def apply(query: (String, Seq[String])): List[Projection] = {
     val (key, fields) = query
-    if (key != includeParam)
-      throw new IllegalArgumentException(s"Expected $includeParam instead of $key")
-    val allIncludedProjections = fields.
+    if (key != excludeParam)
+      throw new IllegalArgumentException(s"Expected $excludeParam instead of $key")
+    val allExcludedProjections = fields.
       flatMap(_.split(",")).
       map(_.trim()).
-      map(field => Include(field))
-    allIncludedProjections.toList
+      map(field => Exclude(field))
+    allExcludedProjections.toList
   }
 
 }

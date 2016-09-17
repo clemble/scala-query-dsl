@@ -1,7 +1,6 @@
-package com.clemble.query.core.parser
+package com.clemble.query.parser
 
-import com.clemble.query.core.model.{Descending, Ascending, SortOrder}
-import com.clemble.query.core.Descending
+import com.clemble.query.model.{Ascending, Descending, SortOrder}
 
 /**
   * Allows to change sorting order by providing query params in REST request.

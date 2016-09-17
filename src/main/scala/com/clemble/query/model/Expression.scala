@@ -1,4 +1,4 @@
-package com.clemble.query.core.model
+package com.clemble.query.model
 
 /**
   * Query expression

@@ -1,6 +1,5 @@
 package com.clemble.query.model
 
-import com.clemble.query.core.model.PaginationParams
 import org.specs2.mutable.Specification
 
 class PaginationParamsSpec extends Specification {

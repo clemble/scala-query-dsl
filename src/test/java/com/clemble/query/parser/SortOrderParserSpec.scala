@@ -1,6 +1,6 @@
-package com.clemble.query.core.parser
+package com.clemble.query.parser
 
-import com.clemble.query.core.model.{Ascending, Descending}
+import com.clemble.query.model.{Descending, Ascending}
 import org.specs2.mutable.Specification
 
 class SortOrderParserSpec extends Specification {

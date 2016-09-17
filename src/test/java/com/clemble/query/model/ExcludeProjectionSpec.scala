@@ -1,7 +1,6 @@
 package com.clemble.query.model
 
-import com.clemble.query.core.model.Exclude
-import com.clemble.query.core.parser.ExcludeProjectionParser
+import com.clemble.query.parser.ExcludeProjectionParser
 import org.specs2.mutable.Specification
 
 class ExcludeProjectionSpec extends Specification {

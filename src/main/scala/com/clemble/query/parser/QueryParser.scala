@@ -1,7 +1,6 @@
-package com.clemble.query.core.parser
+package com.clemble.query.parser
 
-import com.clemble.query.core._
-import com.clemble.query.core.model.{Query, Empty, Expression}
+import com.clemble.query.model.{Empty, Expression, Query}
 
 /**
   * Created by mavarazy on 9/10/16.

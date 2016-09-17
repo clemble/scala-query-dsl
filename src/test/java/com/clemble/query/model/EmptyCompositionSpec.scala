@@ -1,6 +1,5 @@
 package com.clemble.query.model
 
-import com.clemble.query.core.model.{Empty, NotEquals}
 import org.specs2.mutable.Specification
 
 class EmptyCompositionSpec extends Specification {

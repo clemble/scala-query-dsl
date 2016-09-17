@@ -1,6 +1,6 @@
-package com.clemble.query.core.parser
+package com.clemble.query.parser
 
-import com.clemble.query.core.model.{Empty, GreaterThenEquals}
+import com.clemble.query.model.{GreaterThenEquals, Empty}
 import org.specs2.mutable.Specification
 
 class GreaterThenEqualsExpressionParserSpec extends Specification{

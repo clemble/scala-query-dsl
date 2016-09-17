@@ -1,4 +1,4 @@
-package com.clemble.query.core.model
+package com.clemble.query.model
 
 /**
   * Simple abstraction to represent field Projection

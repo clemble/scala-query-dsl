@@ -1,7 +1,6 @@
 package com.clemble.query.parser
 
-import com.clemble.query.core.model.{LessThenEquals, Empty, Expression}
-import com.clemble.query.core.LessThenEquals
+import com.clemble.query.model.{LessThenEquals, Empty, Expression}
 
 /**
   *   Less then equals queries

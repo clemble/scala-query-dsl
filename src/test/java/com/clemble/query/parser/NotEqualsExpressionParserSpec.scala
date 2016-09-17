@@ -1,6 +1,6 @@
-package com.clemble.query.core.parser
+package com.clemble.query.parser
 
-import com.clemble.query.core.model.{And, Empty, NotEquals}
+import com.clemble.query.model.{NotEquals, And, Empty}
 import org.specs2.mutable.Specification
 
 class NotEqualsExpressionParserSpec extends Specification {

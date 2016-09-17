@@ -1,7 +1,6 @@
-package com.clemble.query.core.parser
+package com.clemble.query.parser
 
-import com.clemble.query.core.model.{GreaterThen, Empty, Expression}
-import com.clemble.query.core.GreaterThen
+import com.clemble.query.model.{Empty, Expression, GreaterThen}
 
 /**
   *  Greater then queries

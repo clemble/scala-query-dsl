@@ -1,7 +1,6 @@
-package com.clemble.query.core.parser
+package com.clemble.query.parser
 
-import com.clemble.query.core.model.{NotEquals, Empty, Expression}
-import com.clemble.query.core.NotEquals
+import com.clemble.query.model.{Empty, Expression, NotEquals}
 
 /**
   * Not Equals Expression parser

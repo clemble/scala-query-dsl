@@ -1,4 +1,4 @@
-package com.clemble.query.core.model
+package com.clemble.query.model
 
 /**
   * This is query parameters for find requests

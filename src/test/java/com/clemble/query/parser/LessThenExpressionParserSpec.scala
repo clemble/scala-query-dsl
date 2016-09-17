@@ -1,6 +1,6 @@
-package com.clemble.query.core.parser
+package com.clemble.query.parser
 
-import com.clemble.query.core.model.{Empty, LessThen}
+import com.clemble.query.model.{LessThen, Empty}
 import org.specs2.mutable.Specification
 
 class LessThenExpressionParserSpec extends Specification {
