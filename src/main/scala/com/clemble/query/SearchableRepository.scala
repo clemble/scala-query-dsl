@@ -1,6 +1,6 @@
 package com.clemble.query
 
-import com.clemble.query.model.{Expression, Query}
+import com.clemble.query.model.{SortOrder, Expression, Query}
 import play.api.libs.iteratee.Enumerator
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -18,11 +18,13 @@ trait SearchableRepository[T] {
 
 /**
   * Helper class for SearchableRepository, that translates original query to domain specific query
- *
+  *
   * @tparam T
   */
 trait QueryTranslator[T] {
 
   def translate(query: Expression): T
+
+  def translateSort(sorts: List[SortOrder]): T
 
 }
