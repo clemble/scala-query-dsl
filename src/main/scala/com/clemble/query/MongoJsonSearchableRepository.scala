@@ -11,11 +11,11 @@ import reactivemongo.play.json._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait MongoSearchableRepository[T] extends SearchableRepository[T]{
+trait MongoJSONSearchableRepository[T] extends SearchableRepository[T]{
 
   val queryTranslator: QueryTranslator[JsObject]
   val collection: JSONCollection
-  implicit val f: Format[T]
+  implicit val f: Reads[T]
 
   override def findOne(query: Query)(implicit ec: ExecutionContext): Future[Option[T]] = {
     val mongoQuery = buildQuery(query)
@@ -33,20 +33,12 @@ trait MongoSearchableRepository[T] extends SearchableRepository[T]{
     collection.find(mongoQuery).sort(sortQuery).options(QueryOpts(skipN = query.pagination.offset()))
   }
 
-  private def toSort(query: Query): JsObject = {
-    val sortFields = query.sort.map({
-      case Ascending(field) => field -> JsNumber(1)
-      case Descending(field) => field -> JsNumber(-1)
-    })
-    JsObject(sortFields)
-  }
-
 }
 
 /**
   * Default mongo QueryTranslator
   */
-class MongoQueryTranslator extends QueryTranslator[JsObject] {
+class MongoJSONQueryTranslator extends QueryTranslator[JsObject] {
 
   override def translate(query: Expression): JsObject = {
     query match {

@@ -13,16 +13,16 @@ import scala.concurrent.ExecutionContext.Implicits.global
 /**
   * Mongo version of SearchableRepository
   */
-class MongoSearchableRepositorySpec extends SearchableRepositorySpec {
+class MongoJSONSearchableRepositorySpec extends SearchableRepositorySpec {
 
   implicit val format = Json.format[Employee]
 
-  override val repo: MongoSearchableRepository[Employee] = new MongoSearchableRepository[Employee] {
+  override val repo: MongoJSONSearchableRepository[Employee] = new MongoJSONSearchableRepository[Employee] {
     override val collection: JSONCollection = {
       val db = Await.result(MongoDriver().connection(List("localhost:27017")).database("test"), 1 minute)
       db.collection[JSONCollection]("employee")
     }
-    override val queryTranslator: QueryTranslator[JsObject] = new MongoQueryTranslator()
+    override val queryTranslator: QueryTranslator[JsObject] = new MongoJSONQueryTranslator()
     override implicit val f: Format[Employee] = format
   }
 
