@@ -9,6 +9,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.duration._
 import scala.concurrent.Await
+import scala.util.Try
 
 case class Employee(
                    name: String,
@@ -35,15 +36,17 @@ trait SearchableRepositorySpec extends Specification with BeforeAfterAll {
   val repo: SearchableRepository[Employee]
 
 
-  def save(employee: Employee): Unit
-  def remove(employee: Employee): Unit
+  def save(employee: Employee): Boolean
+  def remove(employee: Employee): Boolean
 
-  def beforeAll(): Unit = {
-    employees.foreach(save)
+  override def beforeAll(): Unit = {
+    val saved = employees.map(emp => Try(save(emp)).getOrElse(false))
+    saved.forall(_ == true) shouldEqual true
   }
 
-  def afterAll(): Unit = {
-    employees.foreach(remove)
+  override def afterAll(): Unit = {
+    val removed = employees.map(emp => Try(remove(emp)).getOrElse(false))
+    removed.forall(_ == true) shouldEqual true
   }
 
   def readAsList(query: Query): List[Employee] = {

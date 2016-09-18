@@ -13,7 +13,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait MongoJSONSearchableRepository[T] extends SearchableRepository[T]{
 
-  val queryTranslator: QueryTranslator[JsObject]
+  val queryTranslator: QueryTranslator[JsObject, JsObject]
   val collection: JSONCollection
   implicit val f: Reads[T]
 
@@ -38,7 +38,7 @@ trait MongoJSONSearchableRepository[T] extends SearchableRepository[T]{
 /**
   * Default mongo QueryTranslator
   */
-class MongoJSONQueryTranslator extends QueryTranslator[JsObject] {
+class MongoJSONQueryTranslator extends QueryTranslator[JsObject, JsObject] {
 
   override def translate(query: Expression): JsObject = {
     query match {

@@ -31,18 +31,18 @@ class MongoBSONSearchableRepositorySpec extends SearchableRepositorySpec {
       val db = Await.result(MongoDriver().connection(List("localhost:27017")).database("test"), 1 minute)
       db.collection[BSONCollection]("employee")
     }
-    override val queryTranslator: QueryTranslator[BSONDocument] = new MongoBSONQueryTranslator()
+    override val queryTranslator: QueryTranslator[BSONDocument, BSONDocument] = new MongoBSONQueryTranslator()
     override implicit val f: BSONDocumentReader[Employee] = format
   }
 
-  override def remove(employee: Employee): Unit = {
+  override def remove(employee: Employee): Boolean = {
     val fRemove = repo.collection.remove(BSONDocument("name" -> employee.name))
-    Await.result(fRemove, 1 minute)
+    Await.result(fRemove, 1 minute).errmsg.isEmpty
   }
 
-  override def save(employee: Employee): Unit = {
+  override def save(employee: Employee): Boolean = {
     val fSave = repo.collection.update(BSONDocument("_id" -> employee.name), format.write(employee), upsert = true)
-    Await.result(fSave, 1 minute)
+    Await.result(fSave, 1 minute).errmsg.isEmpty
   }
 
 }

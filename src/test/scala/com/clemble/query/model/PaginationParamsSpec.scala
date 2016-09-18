@@ -15,4 +15,10 @@ class PaginationParamsSpec extends Specification {
     new PaginationParams(1, 100).offset() shouldEqual 100
   }
 
+  "calculate limit" in {
+    new PaginationParams(0, 10).limit() shouldEqual 10
+    new PaginationParams(1, 10).limit() shouldEqual 20
+    new PaginationParams(1, 100).limit() shouldEqual 200
+    new PaginationParams(0, Int.MaxValue).limit() shouldEqual Int.MaxValue
+  }
 }

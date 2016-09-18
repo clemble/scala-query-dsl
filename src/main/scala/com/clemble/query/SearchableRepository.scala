@@ -19,12 +19,13 @@ trait SearchableRepository[T] {
 /**
   * Helper class for SearchableRepository, that translates original query to domain specific query
   *
-  * @tparam T
+  * @tparam T type of expression result
+  * @tparam S type of sort result
   */
-trait QueryTranslator[T] {
+trait QueryTranslator[T, S] {
 
-  def translate(query: Expression): T
+  def translate(where: Expression): T
 
-  def translateSort(sorts: List[SortOrder]): T
+  def translateSort(sorts: List[SortOrder]): S
 
 }

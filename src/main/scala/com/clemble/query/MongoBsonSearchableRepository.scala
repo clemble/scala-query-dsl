@@ -14,7 +14,7 @@ import scala.concurrent.{Future, ExecutionContext}
 
 trait MongoBSONSearchableRepository[T] extends SearchableRepository[T]{
 
-  val queryTranslator: QueryTranslator[BSONDocument]
+  val queryTranslator: QueryTranslator[BSONDocument, BSONDocument]
   val collection: BSONCollection
   implicit val f: BSONDocumentReader[T]
 
@@ -39,7 +39,7 @@ trait MongoBSONSearchableRepository[T] extends SearchableRepository[T]{
 /**
   * Default mongo BSON QueryTranslator
   */
-class MongoBSONQueryTranslator extends QueryTranslator[BSONDocument] {
+class MongoBSONQueryTranslator extends QueryTranslator[BSONDocument, BSONDocument] {
 
   override def translate(query: Expression): BSONDocument = {
     query match {
