@@ -8,6 +8,13 @@ import scala.collection.mutable
 import scala.concurrent.{Future, ExecutionContext}
 import com.sksamuel.elastic4s.ElasticDsl._
 
+/**
+  * ElasticSearch implementation for SearchableRepository
+  *
+  * In order to use exact match by term, analyer for the field should be set to no_analyzer, check
+  * https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-term-query.html
+  * @tparam T
+  */
 trait ElasticSearchableRepository[T] extends SearchableRepository[T] {
 
   private val ELASTICSEARCH_QUERY_LIMIT = 10000

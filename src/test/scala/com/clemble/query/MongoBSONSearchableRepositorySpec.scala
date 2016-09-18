@@ -35,14 +35,14 @@ class MongoBSONSearchableRepositorySpec extends SearchableRepositorySpec {
     override implicit val f: BSONDocumentReader[Employee] = format
   }
 
-  override def remove(employee: Employee): Boolean = {
-    val fRemove = repo.collection.remove(BSONDocument("name" -> employee.name))
-    Await.result(fRemove, 1 minute).errmsg.isEmpty
-  }
-
   override def save(employee: Employee): Boolean = {
     val fSave = repo.collection.update(BSONDocument("_id" -> employee.name), format.write(employee), upsert = true)
     Await.result(fSave, 1 minute).errmsg.isEmpty
+  }
+
+  override def remove(employee: Employee): Boolean = {
+    val fRemove = repo.collection.remove(BSONDocument("name" -> employee.name))
+    Await.result(fRemove, 1 minute).errmsg.isEmpty
   }
 
 }

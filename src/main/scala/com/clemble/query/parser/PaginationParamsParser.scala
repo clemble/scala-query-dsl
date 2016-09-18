@@ -39,7 +39,7 @@ case class PaginationParamsParser(
       case (Some(page), Some(pageSize)) => page -> pageSize
       case (Some(page), None) => page -> defaultSize
       case (None, Some(pageSize)) => defaultPage -> pageSize
-      case (None, None) => defaultPage -> maxSize
+      case (None, None) => defaultPage -> defaultSize
     }
     PaginationParams(page, pageSize)
   }

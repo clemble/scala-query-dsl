@@ -2,7 +2,9 @@ package com.clemble.query
 
 import com.clemble.query.model._
 import org.specs2.mutable.Specification
-import org.specs2.specification.BeforeAfterAll
+import org.specs2.specification.core.SpecificationStructure
+import org.specs2.specification.create.FragmentsFactory
+import org.specs2.specification.core
 import play.api.libs.iteratee.Iteratee
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -18,11 +20,21 @@ case class Employee(
   override def compare(that: Employee): Int = name.compareTo(that.name)
 }
 
+// Following https://groups.google.com/forum/#!topic/specs2-users/6PEkpAzT080
+trait BeforeAfterAllStopOnError extends SpecificationStructure with FragmentsFactory {
+  def beforeAll
+  def afterAll
+  override def map(fs: => core.Fragments) = super.map(fs).
+    prepend(
+      fragmentFactory.step(beforeAll).stopOnError).
+      append(fragmentFactory.step(afterAll)
+    )
+}
+
 /**
   * Specification for abstract SearchableRepository
   */
-trait SearchableRepositorySpec extends Specification with BeforeAfterAll {
-
+trait SearchableRepositorySpec extends Specification with BeforeAfterAllStopOnError {
 
   val employees = List(
     Employee("A", 100),
@@ -40,13 +52,19 @@ trait SearchableRepositorySpec extends Specification with BeforeAfterAll {
   def remove(employee: Employee): Boolean
 
   override def beforeAll(): Unit = {
-    val saved = employees.map(emp => Try(save(emp)).getOrElse(false))
-    saved.forall(_ == true) shouldEqual true
+    val savedAll = employees.map(employee => save(employee))
+    require(savedAll.forall(_ == true))
+    require(
+      (1 to 10).foldLeft(false)({ (agg, _)  =>
+        if (!agg) Thread.sleep(100)
+        agg || readAsList(Query(Empty)).sorted == employees.sorted
+      })
+    )
   }
 
   override def afterAll(): Unit = {
     val removed = employees.map(emp => Try(remove(emp)).getOrElse(false))
-    removed.forall(_ == true) shouldEqual true
+    require(removed.forall(_ == true))
   }
 
   def readAsList(query: Query): List[Employee] = {
@@ -72,12 +90,13 @@ trait SearchableRepositorySpec extends Specification with BeforeAfterAll {
   "equals query" should {
 
     "find by name" in {
-      for {
+      val failedToSerialize = for {
         emp <- employees
       } yield {
         val empByName = readAsList(Query(Equals("name", emp.name)))
-        empByName shouldEqual List(emp)
+        if (empByName != List(emp)) Some(emp.name) else None
       }
+      failedToSerialize.flatten aka "failed to find" shouldEqual Nil
     }
 
   }

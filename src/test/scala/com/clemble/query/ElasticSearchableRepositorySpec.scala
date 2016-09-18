@@ -2,16 +2,13 @@ package com.clemble.query
 
 import com.sksamuel.elastic4s.ElasticDsl._
 import com.sksamuel.elastic4s._
-import com.sksamuel.elastic4s.source.{Indexable, JsonDocumentSource}
+import com.sksamuel.elastic4s.source.{JsonDocumentSource}
 import play.api.libs.json.Json
 
-import scala.concurrent.Await
-import scala.concurrent.duration._
-import scala.reflect._
+import scala.concurrent.ExecutionContext.Implicits.global
+import com.sksamuel.elastic4s.mappings.FieldType._
 
-class ElasticSearchableRepositorySpec extends SearchableRepositorySpec {
-
-  def getManifest()(implicit manifest: Manifest[Employee]) = manifest
+object ElasticSearchableRepositorySpec extends SearchableRepositorySpec {
 
   override val repo: ElasticSearchableRepository[Employee] = new ElasticSearchableRepository[Employee] {
     override val queryTranslator: QueryTranslator[QueryDefinition, List[SortDefinition]] = new ElasticSearchQueryTranslator
@@ -19,9 +16,25 @@ class ElasticSearchableRepositorySpec extends SearchableRepositorySpec {
     override val client: ElasticClient = {
       val uri = ElasticsearchClientUri("localhost", 9300)
       val client = ElasticClient.transport(uri)
-      client.execute(createIndex("test"))
+      initClient(client)
       client
     }
+    private def initClient(client: ElasticClient) = {
+      val needToRemove = client.execute(indexExists("test")).map(_.isExists()).await
+      if (needToRemove) {
+        require(client.execute(deleteIndex("test")).await().isAcknowledged())
+      }
+
+      val nameMapping = mapping("employee").fields(
+        field("name", StringType).index("not_analyzed"),
+        field("salary", IntegerType)
+      )
+      val createCommand = create index "test" mappings (nameMapping)
+
+      val createResponse = client.execute(createCommand).await
+      createResponse.isAcknowledged()
+    }
+
     override implicit val format: HitAs[Employee] = new HitAs[Employee] {
       override def as(hit: RichSearchHit): Employee = {
         val empJson = Json.parse(hit.sourceAsString)
@@ -35,15 +48,13 @@ class ElasticSearchableRepositorySpec extends SearchableRepositorySpec {
 
 
   override def remove(employee: Employee): Boolean = {
-    val fRemove = repo.client.execute(delete id employee.name from employee.name)
-    val removeResponse = Await.result(fRemove, 1 minute)
+    val removeResponse = repo.client.execute(delete id employee.name from employee.name).await
     removeResponse.isFound()
   }
 
   override def save(employee: Employee): Boolean = {
     val empSource = JsonDocumentSource(s"""{"name": "${employee.name}", "salary": ${employee.salary}}""")
-    val fSave = repo.client.execute(indexInto(repo.indexAndType) doc empSource id employee.name)
-    val saveResponse = Await.result(fSave, 1 minute)
+    val saveResponse = repo.client.execute(indexInto(repo.indexAndType) doc empSource id employee.name).await
     saveResponse.isCreated
   }
 
