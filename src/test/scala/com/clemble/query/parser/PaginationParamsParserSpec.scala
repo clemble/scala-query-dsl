@@ -23,7 +23,7 @@ class PaginationParamsParserSpec extends Specification {
 
   "reading default page" in {
     val query = Map.empty[String, Seq[String]]
-    parser.toPage(query) shouldEqual PaginationParams(0, Int.MaxValue)
+    parser.toPage(query) shouldEqual PaginationParams(0, 25)
   }
 
 }

@@ -63,8 +63,7 @@ trait SearchableRepositorySpec extends Specification with BeforeAfterAllStopOnEr
   }
 
   override def afterAll(): Unit = {
-    val removed = employees.map(emp => Try(remove(emp)).getOrElse(false))
-    require(removed.forall(_ == true))
+    employees.map(emp => Try(remove(emp)).getOrElse(false))
   }
 
   def readAsList(query: Query): List[Employee] = {
