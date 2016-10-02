@@ -8,9 +8,7 @@ import reactivemongo.api.collections.GenericQueryBuilder
 import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.bson._
 import reactivemongo.play.json.BSONFormats._
-
 import reactivemongo.play.iteratees.cursorProducer
-
 import scala.concurrent.{Future, ExecutionContext}
 
 trait MongoBSONSearchableRepository[T] extends SearchableRepository[T]{
