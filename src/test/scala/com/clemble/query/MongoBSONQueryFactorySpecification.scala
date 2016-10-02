@@ -24,8 +24,7 @@ class MongoBSONQueryFactorySpecification extends QueryFactorySpecification {
   }
 
   private val collection: BSONCollection = {
-    val db = Await.result(MongoDriver().connection(List("localhost:27017")).database("test"), 1 minute)
-    db.collection[BSONCollection]("employee_bson_qf")
+    SpecificationConstants.db.collection[BSONCollection]("employee_bson_qf")
   }
 
   override val queryFactory: QueryFactory[Employee] = new MongoBSONQueryFactory(collection)

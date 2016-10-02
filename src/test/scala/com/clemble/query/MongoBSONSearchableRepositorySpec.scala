@@ -29,8 +29,7 @@ class MongoBSONSearchableRepositorySpec extends SearchableRepositorySpec {
   override val repo: MongoBSONSearchableRepository[Employee] with ProjectionSupport = new MongoBSONSearchableRepository[Employee] with MongoBSONProjectionSupport[Employee] {
 
     override val collection: BSONCollection = {
-      val db = Await.result(MongoDriver().connection(List("localhost:27017")).database("test"), 1 minute)
-      db.collection[BSONCollection]("employee_bson")
+      SpecificationConstants.db.collection[BSONCollection]("employee_bson")
     }
 
     override val queryTranslator: QueryTranslator[BSONDocument, BSONDocument] = new MongoBSONQueryTranslator()
