@@ -48,7 +48,7 @@ class ElasticSearchableRepositorySpec extends SearchableRepositorySpec {
 
 
   override def remove(employee: Employee): Boolean = {
-    val removeResponse = repo.client.execute(delete id employee.name from employee.name).await
+    val removeResponse = repo.client.execute(delete id employee.name from repo.indexAndType).await
     removeResponse.isFound()
   }
 

@@ -53,7 +53,6 @@ trait ElasticSearchableRepository[T] extends SearchableRepository[T] {
     searchResponse.hits.map(hit => format.as(hit))
   }
 
-
 }
 
 trait ElasticSearchableRepositoryWithProjectionSupport[T] extends ElasticSearchableRepository[T] with ProjectionSupport {
