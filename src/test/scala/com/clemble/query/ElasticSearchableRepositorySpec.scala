@@ -10,7 +10,7 @@ import com.sksamuel.elastic4s.mappings.FieldType._
 
 class ElasticSearchableRepositorySpec extends SearchableRepositorySpec {
 
-  override val repo: ElasticSearchableRepository[Employee] = new ElasticSearchableRepository[Employee] {
+  override val repo: ElasticSearchableRepository[Employee] with ProjectionSupport = new ElasticSearchableRepositoryWithProjectionSupport[Employee] {
     override val queryTranslator: QueryTranslator[QueryDefinition, List[SortDefinition]] = new ElasticSearchQueryTranslator
     override val indexAndType: IndexAndType = "test" / "employee"
     override val client: ElasticClient = {

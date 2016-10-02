@@ -18,7 +18,7 @@ Supported data stores:
 
 ### Query mechanism
 
-Supported data stores
+
 
 ### Usage
 
@@ -49,7 +49,9 @@ Look how easy it is to use:
 Features
 --------
 
-- Be awesome
+- Basic query operations with equals & not Equals
+- Basic arithmetic operations greater then
+- Pagination
 - Make things faster
 
 Installation

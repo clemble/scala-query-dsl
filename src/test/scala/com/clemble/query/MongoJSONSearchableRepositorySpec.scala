@@ -1,7 +1,7 @@
 package com.clemble.query
 
 import play.api.libs.json.{Json, JsObject, Format}
-import reactivemongo.api.{MongoDriver, MongoConnection, DB, DefaultDB}
+import reactivemongo.api.{MongoDriver}
 import reactivemongo.play.json.collection.JSONCollection
 import reactivemongo.play.json._
 
@@ -17,7 +17,7 @@ class MongoJSONSearchableRepositorySpec extends SearchableRepositorySpec {
 
   implicit val format = Json.format[Employee]
 
-  override val repo: MongoJSONSearchableRepository[Employee] = new MongoJSONSearchableRepository[Employee] {
+  override val repo: MongoJSONSearchableRepository[Employee] with ProjectionSupport = new MongoJSONSearchableRepository[Employee] with MongoJSONProjectionSupport[Employee] {
     override val collection: JSONCollection = {
       val db = Await.result(MongoDriver().connection(List("localhost:27017")).database("test"), 1 minute)
       db.collection[JSONCollection]("employee")

@@ -32,42 +32,48 @@ trait ElasticSearchableRepository[T] extends SearchableRepository[T] {
     fFirstResult
   }
 
-  def findOneWithProjection(query: Query)(implicit ex: ExecutionContext): Future[Option[JsObject]] = {
-    val searchQuery = specifyProjection(buildQuery(query), query)
-    val fFirstResult = client.execute(searchQuery).map(readHitsProjection).map(_.headOption)
-    fFirstResult
-  }
-
   override def find(query: Query)(implicit ec: ExecutionContext): Enumerator[T] = {
     val searchQuery = buildQuery(query)
     val fSearchResults = client.execute(searchQuery).map(readHits)
     Enumerator.flatten(fSearchResults.map(res => Enumerator.enumerate(res)))
   }
 
-  def findWithProjection(query: Query)(implicit ec: ExecutionContext): Enumerator[JsObject] = {
-    val searchQuery = specifyProjection(buildQuery(query), query)
-    val fSearchResults = client.execute(searchQuery).map(readHitsProjection)
-    Enumerator.flatten(fSearchResults.map(res => Enumerator.enumerate(res)))
-  }
-
-  private def buildQuery(query: Query): SearchDefinition = {
+  protected def buildQuery(query: Query): SearchDefinition = {
     val filters = queryTranslator.translate(query.where)
     val esQuery = search(indexAndType).query(
       filter(filters)
     )
     val sorts = queryTranslator.translateSort(query.sort)
-    val limit = query.pagination.limitWithMax(ELASTICSEARCH_QUERY_LIMIT)
+    val offset = query.pagination.offset()
+    val limit = query.pagination.limitWithMax(ELASTICSEARCH_QUERY_LIMIT) - offset
     esQuery.sort(sorts :_*).from(query.pagination.offset()).limit(limit)
+  }
+
+  private def readHits(searchResponse: RichSearchResponse): mutable.ArraySeq[T] = {
+    searchResponse.hits.map(hit => format.as(hit))
+  }
+
+
+}
+
+trait ElasticSearchableRepositoryWithProjectionSupport[T] extends ElasticSearchableRepository[T] with ProjectionSupport {
+
+  override def findWithProjection(query: Query)(implicit ec: ExecutionContext): Enumerator[JsObject] = {
+    val searchQuery = specifyProjection(buildQuery(query), query)
+    val fSearchResults = client.execute(searchQuery).map(readHitsProjection)
+    Enumerator.flatten(fSearchResults.map(res => Enumerator.enumerate(res)))
+  }
+
+  override def findOneWithProjection(query: Query)(implicit ex: ExecutionContext): Future[Option[JsObject]] = {
+    val searchQuery = specifyProjection(buildQuery(query), query)
+    val fFirstResult = client.execute(searchQuery).map(readHitsProjection).map(_.headOption)
+    fFirstResult
   }
 
   private def specifyProjection(search: SearchDefinition, query: Query): SearchDefinition = {
     val includeFields = query.projection.collect({ case Include(field) => field })
     val excludeFields = query.projection.collect({ case Exclude(field) => field })
     search.sourceExclude(excludeFields: _*).sourceInclude(includeFields: _*)
-  }
-
-  private def readHits(searchResponse: RichSearchResponse): mutable.ArraySeq[T] = {
-    searchResponse.hits.map(hit => format.as(hit))
   }
 
   private def readHitsProjection(searchResponse: RichSearchResponse): mutable.ArraySeq[JsObject] = {
@@ -112,5 +118,4 @@ class ElasticSearchQueryTranslator extends QueryTranslator[QueryDefinition, List
     })
   }
 
-  override def translateProjection(projection: List[Projection]): List[SortDefinition] = ???
 }

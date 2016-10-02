@@ -13,9 +13,14 @@ trait SearchableRepository[T] {
 
   def findOne(query: Query)(implicit ec: ExecutionContext): Future[Option[T]]
 
-  def findOneWithProjection(query: Query)(implicit ex: ExecutionContext): Future[Option[JsObject]]
 
   def find(query: Query)(implicit ec: ExecutionContext): Enumerator[T]
+
+}
+
+trait ProjectionSupport {
+
+  def findOneWithProjection(query: Query)(implicit ex: ExecutionContext): Future[Option[JsObject]]
 
   def findWithProjection(query: Query)(implicit ec: ExecutionContext): Enumerator[JsObject]
 
@@ -32,7 +37,5 @@ trait QueryTranslator[T, S] {
   def translate(where: Expression): T
 
   def translateSort(sorts: List[SortOrder]): S
-
-  def translateProjection(projection: List[Projection]): S
 
 }

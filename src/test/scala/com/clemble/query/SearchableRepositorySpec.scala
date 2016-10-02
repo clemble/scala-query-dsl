@@ -46,7 +46,7 @@ trait SearchableRepositorySpec extends Specification with BeforeAfterAllStopOnEr
     Employee("F", 160)
   )
 
-  val repo: SearchableRepository[Employee]
+  val repo: SearchableRepository[Employee] with ProjectionSupport
 
   def save(employee: Employee): Boolean
   def remove(employee: Employee): Boolean
@@ -227,6 +227,11 @@ trait SearchableRepositorySpec extends Specification with BeforeAfterAllStopOnEr
     "Return 2" in {
       val askForTwo = readAsList(Query(Empty, sort = List(Ascending("name")), pagination = PaginationParams(0, 2)))
       askForTwo should containTheSameElementsAs(employees.take(2))
+    }
+
+    "Read next page" in {
+      val askForSingle = readAsList(Query(Empty, sort = List(Ascending("name")), pagination = PaginationParams(1, 1)))
+      askForSingle shouldEqual List(employees(1))
     }
 
   }

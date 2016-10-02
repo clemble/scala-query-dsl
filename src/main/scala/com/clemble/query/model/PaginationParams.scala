@@ -13,3 +13,9 @@ case class PaginationParams(page: Int, pageSize: Int) {
   def limit() = limitWithMax()
   def limitWithMax(max: Int = Int.MaxValue) = Math.min(offset() + pageSize, max)
 }
+
+object PaginationParams {
+
+  val empty = PaginationParams(0, 25)
+
+}

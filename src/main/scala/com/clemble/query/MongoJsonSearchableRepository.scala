@@ -22,27 +22,39 @@ trait MongoJSONSearchableRepository[T] extends SearchableRepository[T]{
     mongoQuery.one[T]
   }
 
-  override def findOneWithProjection(query: Query)(implicit ex: ExecutionContext): Future[Option[JsObject]] = {
-    val mongoQuery = buildQuery(query)
-    val mongoQueryWithProjection = mongoQuery.projection(queryTranslator.translateProjection(query.projection))
-    mongoQueryWithProjection.one[JsObject].map(_.map(_ - "_id"))
-  }
-
   override def find(query: Query)(implicit ec: ExecutionContext): Enumerator[T] = {
     val mongoQuery = buildQuery(query)
     mongoQuery.cursor[T]().enumerator(maxDocs = query.pagination.pageSize)
   }
 
-  override def findWithProjection(query: Query)(implicit ec: ExecutionContext): Enumerator[JsObject] = {
-    val mongoQuery = buildQuery(query)
-    val mongoQueryWithProjection = mongoQuery.projection(queryTranslator.translateProjection(query.projection))
-    mongoQueryWithProjection.cursor[JsObject]().enumerator(maxDocs = query.pagination.pageSize).map(_ - "_id")
-  }
-
-  private def buildQuery(query: Query)(implicit ec: ExecutionContext): GenericQueryBuilder[collection.pack.type]#Self = {
+  protected def buildQuery(query: Query)(implicit ec: ExecutionContext): GenericQueryBuilder[collection.pack.type]#Self = {
     val mongoQuery = queryTranslator.translate(query.where)
     val sortQuery = queryTranslator.translateSort(query.sort)
     collection.find(mongoQuery).sort(sortQuery).options(QueryOpts(skipN = query.pagination.offset()))
+  }
+
+}
+
+trait MongoJSONProjectionSupport[T] extends MongoJSONSearchableRepository[T] with ProjectionSupport {
+
+  override def findOneWithProjection(query: Query)(implicit ex: ExecutionContext): Future[Option[JsObject]] = {
+    val mongoQuery = buildQuery(query)
+    val mongoQueryWithProjection = specifyProjection(mongoQuery, query.projection)
+    mongoQueryWithProjection.one[JsObject].map(_.map(_ - "_id"))
+  }
+
+  override def findWithProjection(query: Query)(implicit ec: ExecutionContext): Enumerator[JsObject] = {
+    val mongoQuery = buildQuery(query)
+    val mongoQueryWithProjection = specifyProjection(mongoQuery, query.projection)
+    mongoQueryWithProjection.cursor[JsObject]().enumerator(maxDocs = query.pagination.pageSize).map(_ - "_id")
+  }
+
+  private def specifyProjection(query: GenericQueryBuilder[collection.pack.type]#Self, projection: List[Projection]) = {
+    val projectionFields = projection.map({
+      case Include(field) => field -> JsNumber(1)
+      case Exclude(field) => field -> JsNumber(0)
+    })
+    query.projection(JsObject(projectionFields))
   }
 
 }
@@ -81,14 +93,6 @@ class MongoJSONQueryTranslator extends QueryTranslator[JsObject, JsObject] {
       case Descending(field) => field -> JsNumber(-1)
     })
     JsObject(sortFields)
-  }
-
-  override def translateProjection(projection: List[Projection]): JsObject = {
-    val projectionFields = projection.map({
-      case Include(field) => field -> JsNumber(1)
-      case Exclude(field) => field -> JsNumber(0)
-    })
-    JsObject(projectionFields)
   }
 
 }
