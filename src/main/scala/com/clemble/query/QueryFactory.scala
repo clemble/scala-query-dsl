@@ -11,17 +11,15 @@ import scala.concurrent.{ExecutionContext, Future}
   */
 trait QueryFactory[T] {
 
-  def create(): QueryBuilder[T]
+  def create(exp: Expression): QueryBuilder[T]
 
 }
 
 trait QueryBuilder[T] {
 
-  def where(exp: Expression): QueryBuilder[T]
-
   def pagination(pagination: PaginationParams): QueryBuilder[T]
 
-  def withProjection(projection: List[Projection]): QueryBuilder[T]
+  def projection(projection: List[Projection]): QueryBuilder[T]
 
   def sorted(sort: List[SortOrder]): QueryBuilder[T]
 

@@ -13,7 +13,6 @@ trait SearchableRepository[T] {
 
   def findOne(query: Query)(implicit ec: ExecutionContext): Future[Option[T]]
 
-
   def find(query: Query)(implicit ec: ExecutionContext): Enumerator[T]
 
 }

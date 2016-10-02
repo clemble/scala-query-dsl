@@ -5,7 +5,7 @@ import org.specs2.mutable.Specification
 import org.specs2.specification.core.SpecificationStructure
 import org.specs2.specification.create.FragmentsFactory
 import org.specs2.specification.core
-import play.api.libs.iteratee.Iteratee
+import play.api.libs.iteratee.{Enumerator, Iteratee}
 import play.api.libs.json.{JsObject, Json}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -35,7 +35,75 @@ trait BeforeAfterAllStopOnError extends SpecificationStructure with FragmentsFac
 /**
   * Specification for abstract SearchableRepository
   */
-trait SearchableRepositorySpec extends Specification with BeforeAfterAllStopOnError {
+trait SearchableRepositorySpec extends QuerySpecification {
+
+  val repo: SearchableRepository[Employee] with ProjectionSupport
+
+  override def readOne(query: Query): Option[Employee] = {
+    val fEmployee = repo.findOne(query)
+    Await.result(fEmployee, 1 minute)
+  }
+
+  override def readOneWithProjection(query: Query): Option[JsObject] = {
+    val fEmployeeProj = repo.findOneWithProjection(query)
+    val employeeProj = Await.result(fEmployeeProj, 1 minute)
+    employeeProj
+  }
+
+  override def readAsList(query: Query): List[Employee] = {
+    val fEmployees = repo.find(query) run Iteratee.fold(List.empty[Employee]) { (a, b) => b :: a }
+    Await.result(fEmployees, 1 minute).reverse
+  }
+
+  def readAsListWithProjection(query: Query): List[JsObject] = {
+    val fEmployees = repo.findWithProjection(query) run Iteratee.fold(List.empty[JsObject]){ (a, b) => b :: a }
+    val employeesProj = Await.result(fEmployees, 1 minute).reverse
+    employeesProj
+  }
+
+}
+
+trait QueryFactorySpecification extends QuerySpecification {
+
+  val queryFactory: QueryFactory[Employee]
+
+  override def readAsList(query: Query): List[Employee] = {
+    val fQuery = toQuery(query).find()
+    val fEmployees = fQuery run Iteratee.fold(List.empty[Employee]){ (a, b) => b :: a }
+    val employees = Await.result(fEmployees, 1 minute).reverse
+    employees
+  }
+
+  override def readAsListWithProjection(query: Query): List[JsObject] = {
+    val fQuery = toQuery(query).findWithProjection()
+    val fEmployees = fQuery run Iteratee.fold(List.empty[JsObject]){ (a, b) => b :: a }
+    val employees = Await.result(fEmployees, 1 minute).reverse
+    employees
+  }
+
+  override def readOne(query: Query): Option[Employee] = {
+    val fEmployee = toQuery(query).findOne()
+    val employee = Await.result(fEmployee, 1 minute)
+    employee
+  }
+
+  override def readOneWithProjection(query: Query): Option[JsObject] = {
+    val fEmployee = toQuery(query).findOneWithProjection()
+    val employee = Await.result(fEmployee, 1 minute)
+    employee
+  }
+
+  private def toQuery(query: Query) = {
+    queryFactory.
+      create(query.where).
+      sorted(query.sort).
+      pagination(query.pagination).
+      projection(query.projection)
+  }
+
+}
+
+trait QuerySpecification extends Specification with BeforeAfterAllStopOnError {
 
   val employees = List(
     Employee("A", 100),
@@ -46,15 +114,14 @@ trait SearchableRepositorySpec extends Specification with BeforeAfterAllStopOnEr
     Employee("F", 160)
   )
 
-  val repo: SearchableRepository[Employee] with ProjectionSupport
-
   def save(employee: Employee): Boolean
+
   def remove(employee: Employee): Boolean
 
   override def beforeAll(): Unit = {
     val savedAll = employees.map(employee => save(employee))
     require(savedAll.forall(_ == true), "Saved all employees")
-    val canReadAll = (1 to 10).foldLeft(false)({ (agg, _)  =>
+    val canReadAll = (1 to 10).foldLeft(false)({ (agg, _) =>
       if (!agg) Thread.sleep(100)
       agg || readAsList(Query(Empty)).sorted == employees.sorted
     })
@@ -65,15 +132,13 @@ trait SearchableRepositorySpec extends Specification with BeforeAfterAllStopOnEr
     employees.map(emp => Try(remove(emp)).getOrElse(false))
   }
 
-  def readAsList(query: Query): List[Employee] = {
-    val fEmployees = repo.find(query) run Iteratee.fold(List.empty[Employee]){ (a , b) => b :: a }
-    Await.result(fEmployees, 1 minute).reverse
-  }
+  def readAsList(query: Query): List[Employee]
 
-  def readOne(query: Query): Option[Employee] = {
-    val fEmployee = repo.findOne(query)
-    Await.result(fEmployee, 1 minute)
-  }
+  def readAsListWithProjection(query: Query): List[JsObject]
+
+  def readOne(query: Query): Option[Employee]
+
+  def readOneWithProjection(query: Query): Option[JsObject]
 
   "empty query" should {
 
@@ -81,7 +146,6 @@ trait SearchableRepositorySpec extends Specification with BeforeAfterAllStopOnEr
       val allReadEmployees = readAsList(Query(Empty))
       allReadEmployees.sorted shouldEqual employees.sorted
     }
-
 
   }
 
@@ -118,20 +182,17 @@ trait SearchableRepositorySpec extends Specification with BeforeAfterAllStopOnEr
     val excludeQuery = Query(Empty, sort = List(Ascending("name")), projection = List(Exclude("name")))
 
     "include one" in {
-      val fEmployeeProj = repo.findOneWithProjection(includeQuery)
-      val employeeProj = Await.result(fEmployeeProj, 1 minute)
-      employeeProj shouldEqual Some(Json.obj("name" -> "A"))
+      val employee = readOneWithProjection(includeQuery)
+      employee shouldEqual Some(Json.obj("name" -> "A"))
     }
 
     "exclude one" in {
-      val fEmployeeProj = repo.findOneWithProjection(excludeQuery)
-      val employeeProj = Await.result(fEmployeeProj, 1 minute)
+      val employeeProj = readOneWithProjection(excludeQuery)
       employeeProj shouldEqual Some(Json.obj("salary" -> 100))
     }
 
     "include as list" in {
-      val fEmployees = repo.findWithProjection(includeQuery) run Iteratee.fold(List.empty[JsObject]){ (a, b) => b :: a }
-      val employeesProj = Await.result(fEmployees, 1 minute).reverse
+      val employeesProj = readAsListWithProjection(includeQuery)
       employeesProj shouldEqual List(
         Json.obj("name" -> "A"),
         Json.obj("name" -> "B"),
@@ -143,8 +204,7 @@ trait SearchableRepositorySpec extends Specification with BeforeAfterAllStopOnEr
     }
 
     "exclude as list" in {
-      val fEmployees = repo.findWithProjection(excludeQuery) run Iteratee.fold(List.empty[JsObject]){ (a , b) => b :: a }
-      val employeesProj = Await.result(fEmployees, 1 minute).reverse
+      val employeesProj = readAsListWithProjection(excludeQuery)
       employeesProj shouldEqual List(
         Json.obj("salary" -> 100),
         Json.obj("salary" -> 120),

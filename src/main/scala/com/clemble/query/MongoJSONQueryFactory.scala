@@ -18,37 +18,32 @@ class MongoJSONQueryFactory[T](
   queryTranslator: QueryTranslator[JsObject, JsObject] = new MongoJSONQueryTranslator
 )(implicit format: Format[T]) extends QueryFactory[T] {
 
-  override def create(): QueryBuilder[T] = {
-    new MongoJSONQueryBuilder[T](collection.genericQueryBuilder, queryTranslator)
+  override def create(exp: Expression): QueryBuilder[T] = {
+    new MongoJSONQueryBuilder[T](collection.find(queryTranslator.translate(exp)))
   }
 
 }
 
 private case class MongoJSONQueryBuilder[T](
-  private val queryBuilder: GenericQueryBuilder[JSONSerializationPack.type],
-  queryTranslator: QueryTranslator[JsObject, JsObject]
+  var queryBuilder: GenericQueryBuilder[JSONSerializationPack.type]
 )(implicit val format: Format[T]) extends QueryBuilder[T] {
 
   private var pagination: PaginationParams = PaginationParams.empty
-
-  override def where(exp: Expression): QueryBuilder[T] = {
-    val mongoQuery = queryTranslator.translate(exp)
-    queryBuilder.query(mongoQuery)
-    this
-  }
 
   override def pagination(paginationParams: PaginationParams): QueryBuilder[T] = {
     this.pagination = paginationParams
     this
   }
 
-  override def withProjection(projection: List[Projection]): QueryBuilder[T] = {
+  override def projection(projection: List[Projection]): QueryBuilder[T] = {
+    if (projection.isEmpty)
+      return this
     val projectionFields = projection.map({
       case Include(field) => field -> JsNumber(1)
       case Exclude(field) => field -> JsNumber(0)
     })
     val projectionQuery = JsObject(projectionFields)
-    queryBuilder.projection(projectionQuery)
+    queryBuilder = queryBuilder.projection(projectionQuery)
     this
   }
 
@@ -58,7 +53,7 @@ private case class MongoJSONQueryBuilder[T](
       case Descending(field) => field -> JsNumber(-1)
     })
     val sortQuery = JsObject(sortFields)
-    queryBuilder.sort(sortQuery)
+    queryBuilder = queryBuilder.sort(sortQuery)
     this
   }
 
@@ -67,7 +62,7 @@ private case class MongoJSONQueryBuilder[T](
   }
 
   override def findOneWithProjection()(implicit ec: ExecutionContext): Future[Option[JsObject]] = {
-    queryBuilder.one[JsObject]
+    queryBuilder.one[JsObject].map(_.map(_ - "_id"))
   }
 
   override def find()(implicit ec: ExecutionContext): Enumerator[T] = {
