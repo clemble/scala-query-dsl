@@ -30,7 +30,7 @@ class MongoBSONSearchableRepositorySpec extends SearchableRepositorySpec {
 
     override val collection: BSONCollection = {
       val db = Await.result(MongoDriver().connection(List("localhost:27017")).database("test"), 1 minute)
-      db.collection[BSONCollection]("employee")
+      db.collection[BSONCollection]("employee_bson")
     }
 
     override val queryTranslator: QueryTranslator[BSONDocument, BSONDocument] = new MongoBSONQueryTranslator()

@@ -10,7 +10,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class ElasticQueryFactorySpecification extends QueryFactorySpecification {
 
-  val indexAndType: IndexAndType = "test" / "employee"
+  val indexAndType: IndexAndType = "test" / "employee_qf"
   val client: ElasticClient = {
     val uri = ElasticsearchClientUri("localhost", 9300)
     val client = ElasticClient.transport(uri)

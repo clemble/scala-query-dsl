@@ -20,7 +20,7 @@ class MongoJSONSearchableRepositorySpec extends SearchableRepositorySpec {
   override val repo: MongoJSONSearchableRepository[Employee] with ProjectionSupport = new MongoJSONSearchableRepository[Employee] with MongoJSONProjectionSupport[Employee] {
     override val collection: JSONCollection = {
       val db = Await.result(MongoDriver().connection(List("localhost:27017")).database("test"), 1 minute)
-      db.collection[JSONCollection]("employee")
+      db.collection[JSONCollection]("employee_json")
     }
     override val queryTranslator: QueryTranslator[JsObject, JsObject] = new MongoJSONQueryTranslator()
     override implicit val f: Format[Employee] = format

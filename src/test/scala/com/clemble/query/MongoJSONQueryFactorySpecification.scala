@@ -16,7 +16,7 @@ class MongoJSONQueryFactorySpecification extends QueryFactorySpecification{
 
   private  val collection: JSONCollection = {
     val db = Await.result(MongoDriver().connection(List("localhost:27017")).database("test"), 1 minute)
-    db.collection[JSONCollection]("employee")
+    db.collection[JSONCollection]("employee_json_qf")
   }
 
   override val queryFactory: QueryFactory[Employee] = new MongoJSONQueryFactory(
