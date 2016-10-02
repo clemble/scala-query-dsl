@@ -4,6 +4,7 @@ import com.clemble.query.model._
 import com.sksamuel.elastic4s._
 import org.elasticsearch.search.sort.SortOrder
 import play.api.libs.iteratee.Enumerator
+import play.api.libs.json.{Json, JsObject}
 import scala.collection.mutable
 import scala.concurrent.{Future, ExecutionContext}
 import com.sksamuel.elastic4s.ElasticDsl._
@@ -13,6 +14,7 @@ import com.sksamuel.elastic4s.ElasticDsl._
   *
   * In order to use exact match by term, analyer for the field should be set to no_analyzer, check
   * https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-term-query.html
+  *
   * @tparam T
   */
 trait ElasticSearchableRepository[T] extends SearchableRepository[T] {
@@ -30,12 +32,23 @@ trait ElasticSearchableRepository[T] extends SearchableRepository[T] {
     fFirstResult
   }
 
+  def findOneWithProjection(query: Query)(implicit ex: ExecutionContext): Future[Option[JsObject]] = {
+    val searchQuery = specifyProjection(buildQuery(query), query)
+    val fFirstResult = client.execute(searchQuery).map(readHitsProjection).map(_.headOption)
+    fFirstResult
+  }
+
   override def find(query: Query)(implicit ec: ExecutionContext): Enumerator[T] = {
     val searchQuery = buildQuery(query)
     val fSearchResults = client.execute(searchQuery).map(readHits)
     Enumerator.flatten(fSearchResults.map(res => Enumerator.enumerate(res)))
   }
 
+  def findWithProjection(query: Query)(implicit ec: ExecutionContext): Enumerator[JsObject] = {
+    val searchQuery = specifyProjection(buildQuery(query), query)
+    val fSearchResults = client.execute(searchQuery).map(readHitsProjection)
+    Enumerator.flatten(fSearchResults.map(res => Enumerator.enumerate(res)))
+  }
 
   private def buildQuery(query: Query): SearchDefinition = {
     val filters = queryTranslator.translate(query.where)
@@ -47,8 +60,20 @@ trait ElasticSearchableRepository[T] extends SearchableRepository[T] {
     esQuery.sort(sorts :_*).from(query.pagination.offset()).limit(limit)
   }
 
+  private def specifyProjection(search: SearchDefinition, query: Query): SearchDefinition = {
+    val includeFields = query.projection.collect({ case Include(field) => field })
+    val excludeFields = query.projection.collect({ case Exclude(field) => field })
+    search.sourceExclude(excludeFields: _*).sourceInclude(includeFields: _*)
+  }
+
   private def readHits(searchResponse: RichSearchResponse): mutable.ArraySeq[T] = {
     searchResponse.hits.map(hit => format.as(hit))
+  }
+
+  private def readHitsProjection(searchResponse: RichSearchResponse): mutable.ArraySeq[JsObject] = {
+    searchResponse.hits.map(hit => {
+      Json.parse(hit.sourceAsString).as[JsObject]
+    })
   }
 
 }
@@ -86,4 +111,6 @@ class ElasticSearchQueryTranslator extends QueryTranslator[QueryDefinition, List
         field sort f order SortOrder.DESC
     })
   }
+
+  override def translateProjection(projection: List[Projection]): List[SortDefinition] = ???
 }

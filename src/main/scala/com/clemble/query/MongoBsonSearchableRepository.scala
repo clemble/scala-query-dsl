@@ -2,11 +2,12 @@ package com.clemble.query
 
 import com.clemble.query.model._
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{Json, JsNumber, Format, JsObject}
+import play.api.libs.json.{Json, JsObject}
 import reactivemongo.api.QueryOpts
 import reactivemongo.api.collections.GenericQueryBuilder
 import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.bson._
+import reactivemongo.play.json.BSONFormats._
 
 import reactivemongo.play.iteratees.cursorProducer
 
@@ -23,9 +24,21 @@ trait MongoBSONSearchableRepository[T] extends SearchableRepository[T]{
     mongoQuery.one[T]
   }
 
+  def findOneWithProjection(query: Query)(implicit ex: ExecutionContext): Future[Option[JsObject]] = {
+    val mongoQuery = buildQuery(query)
+    val mongoQueryWithProjection = mongoQuery.projection(queryTranslator.translateProjection(query.projection))
+    mongoQueryWithProjection.one[BSONDocument].map(docOpt => docOpt.map(d => Json.toJson(d).as[JsObject] - "_id"))
+  }
+
   override def find(query: Query)(implicit ec: ExecutionContext): Enumerator[T] = {
     val mongoQuery = buildQuery(query)
     mongoQuery.cursor[T]().enumerator(maxDocs = query.pagination.pageSize)
+  }
+
+  override def findWithProjection(query: Query)(implicit ec: ExecutionContext): Enumerator[JsObject] = {
+    val mongoQuery = buildQuery(query)
+    val mongoQueryWithProjection = mongoQuery.projection(queryTranslator.translateProjection(query.projection))
+    mongoQueryWithProjection.cursor[BSONDocument]().enumerator(maxDocs = query.pagination.pageSize).map(d => Json.toJson(d).as[JsObject] - "_id")
   }
 
   private def buildQuery(query: Query)(implicit ec: ExecutionContext): GenericQueryBuilder[collection.pack.type]#Self = {
@@ -70,6 +83,14 @@ class MongoBSONQueryTranslator extends QueryTranslator[BSONDocument, BSONDocumen
       case Descending(field) => field -> BSONInteger(-1)
     })
     BSONDocument(sortFields)
+  }
+
+  override def translateProjection(projection: List[Projection]): BSONDocument = {
+    val projectionFields = projection.map({
+      case Include(field) => field -> BSONInteger(1)
+      case Exclude(field) => field -> BSONInteger(0)
+    })
+    BSONDocument(projectionFields)
   }
 
 }

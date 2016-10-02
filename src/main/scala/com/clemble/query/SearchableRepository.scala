@@ -1,7 +1,8 @@
 package com.clemble.query
 
-import com.clemble.query.model.{SortOrder, Expression, Query}
+import com.clemble.query.model.{Projection, SortOrder, Expression, Query}
 import play.api.libs.iteratee.Enumerator
+import play.api.libs.json.JsObject
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -12,7 +13,11 @@ trait SearchableRepository[T] {
 
   def findOne(query: Query)(implicit ec: ExecutionContext): Future[Option[T]]
 
+  def findOneWithProjection(query: Query)(implicit ex: ExecutionContext): Future[Option[JsObject]]
+
   def find(query: Query)(implicit ec: ExecutionContext): Enumerator[T]
+
+  def findWithProjection(query: Query)(implicit ec: ExecutionContext): Enumerator[JsObject]
 
 }
 
@@ -27,5 +32,7 @@ trait QueryTranslator[T, S] {
   def translate(where: Expression): T
 
   def translateSort(sorts: List[SortOrder]): S
+
+  def translateProjection(projection: List[Projection]): S
 
 }

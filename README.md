@@ -3,15 +3,40 @@ Scala Query DSL
 [![CircleCI](https://circleci.com/gh/clemble/scala-query-dsl.svg?style=svg)](https://circleci.com/gh/clemble/scala-query-dsl)
 [![Coverage Status](https://coveralls.io/repos/github/clemble/scala-query-dsl/badge.svg?branch=master)](https://coveralls.io/github/clemble/scala-query-dsl?branch=master)
 
-Scala Query DSL was inspired by Query DSL in Java and Spring Data.
+Scala Query DSL was inspired by Query DSL in Java.
 
-The goal is to create transparent search mechanism, that would be independent of used engine and could easily be replaced with another engine as needed.
-Currently supported engines
+I found myself implementing the same pattern for handling queries over and over again. So, when thinking of implementing this for a 3rd time, I decided to generalize acquired experience in this open source project.
 
-  - Mongo (https://github.com/ReactiveMongo/ReactiveMongo, http://reactivemongo.org/)
-  - ElasticSearch (https://github.com/sksamuel/elastic4s)
+The goal is to create simple set of abstractions to simplify basic search implementation. It should be extensible and have a performance on a pair with writing queries manually.  
 
-Currently only query functionality supported:
+Supported data stores:
+
+  - Mongo JSON collections (https://github.com/ReactiveMongo/ReactiveMongo, http://reactivemongo.org/)
+  - Mongo BSON collections (https://github.com/ReactiveMongo/ReactiveMongo, http://reactivemongo.org/)
+  - ElasticSearch with Elastic4s (https://github.com/sksamuel/elastic4s)
+
+
+### Query mechanism
+
+Supported data stores
+
+### Usage
+
+Given following User
+
+   case class User {
+        firstName: String,
+        lastName: String,
+        age: BigDecimal
+   }
+
+You can create query
+
+   import com.clemble.query.model.Expression.Implicits._ 
+
+   val query = Query("firstName" is "Bob")
+   
+This query can be used with 
 
 by providing a basic explanation of how to do it easily.
 

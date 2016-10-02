@@ -6,6 +6,7 @@ import org.specs2.specification.core.SpecificationStructure
 import org.specs2.specification.create.FragmentsFactory
 import org.specs2.specification.core
 import play.api.libs.iteratee.Iteratee
+import play.api.libs.json.{JsObject, Json}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -47,19 +48,17 @@ trait SearchableRepositorySpec extends Specification with BeforeAfterAllStopOnEr
 
   val repo: SearchableRepository[Employee]
 
-
   def save(employee: Employee): Boolean
   def remove(employee: Employee): Boolean
 
   override def beforeAll(): Unit = {
     val savedAll = employees.map(employee => save(employee))
-    require(savedAll.forall(_ == true))
-    require(
-      (1 to 10).foldLeft(false)({ (agg, _)  =>
-        if (!agg) Thread.sleep(100)
-        agg || readAsList(Query(Empty)).sorted == employees.sorted
-      })
-    )
+    require(savedAll.forall(_ == true), "Saved all employees")
+    val canReadAll = (1 to 10).foldLeft(false)({ (agg, _)  =>
+      if (!agg) Thread.sleep(100)
+      agg || readAsList(Query(Empty)).sorted == employees.sorted
+    })
+    require(canReadAll, "Read all Employees after save")
   }
 
   override def afterAll(): Unit = {
@@ -109,6 +108,51 @@ trait SearchableRepositorySpec extends Specification with BeforeAfterAllStopOnEr
         val empByName = readAsList(Query(NotEquals("name", emp.name)))
         empByName should containTheSameElementsAs(employees.filterNot(_ == emp))
       }
+    }
+
+  }
+
+  "projection query" should {
+
+    val includeQuery = Query(Empty, sort = List(Ascending("name")), projection = List(Include("name")))
+    val excludeQuery = Query(Empty, sort = List(Ascending("name")), projection = List(Exclude("name")))
+
+    "include one" in {
+      val fEmployeeProj = repo.findOneWithProjection(includeQuery)
+      val employeeProj = Await.result(fEmployeeProj, 1 minute)
+      employeeProj shouldEqual Some(Json.obj("name" -> "A"))
+    }
+
+    "exclude one" in {
+      val fEmployeeProj = repo.findOneWithProjection(excludeQuery)
+      val employeeProj = Await.result(fEmployeeProj, 1 minute)
+      employeeProj shouldEqual Some(Json.obj("salary" -> 100))
+    }
+
+    "include as list" in {
+      val fEmployees = repo.findWithProjection(includeQuery) run Iteratee.fold(List.empty[JsObject]){ (a, b) => b :: a }
+      val employeesProj = Await.result(fEmployees, 1 minute).reverse
+      employeesProj shouldEqual List(
+        Json.obj("name" -> "A"),
+        Json.obj("name" -> "B"),
+        Json.obj("name" -> "C"),
+        Json.obj("name" -> "D"),
+        Json.obj("name" -> "E"),
+        Json.obj("name" -> "F")
+      )
+    }
+
+    "exclude as list" in {
+      val fEmployees = repo.findWithProjection(excludeQuery) run Iteratee.fold(List.empty[JsObject]){ (a , b) => b :: a }
+      val employeesProj = Await.result(fEmployees, 1 minute).reverse
+      employeesProj shouldEqual List(
+        Json.obj("salary" -> 100),
+        Json.obj("salary" -> 120),
+        Json.obj("salary" -> 130),
+        Json.obj("salary" -> 140),
+        Json.obj("salary" -> 150),
+        Json.obj("salary" -> 160)
+      )
     }
 
   }

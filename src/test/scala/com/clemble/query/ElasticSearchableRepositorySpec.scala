@@ -8,7 +8,7 @@ import play.api.libs.json.Json
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.sksamuel.elastic4s.mappings.FieldType._
 
-object ElasticSearchableRepositorySpec extends SearchableRepositorySpec {
+class ElasticSearchableRepositorySpec extends SearchableRepositorySpec {
 
   override val repo: ElasticSearchableRepository[Employee] = new ElasticSearchableRepository[Employee] {
     override val queryTranslator: QueryTranslator[QueryDefinition, List[SortDefinition]] = new ElasticSearchQueryTranslator
