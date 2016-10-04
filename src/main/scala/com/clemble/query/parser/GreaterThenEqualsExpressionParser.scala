@@ -26,7 +26,7 @@ case class GreaterThenEqualsExpressionParser(gteParam: String = "-gte") extends 
       throw new IllegalArgumentException(s"Ending must be $gteParam")
     if (values.isEmpty)
       return Empty
-    val maxValue = values.map(BigDecimal(_)).max
+    val maxValue = values.map(Integer.valueOf(_)).max
     GreaterThenEquals(key.substring(0, key.length - gteParam.length), maxValue)
   }
 

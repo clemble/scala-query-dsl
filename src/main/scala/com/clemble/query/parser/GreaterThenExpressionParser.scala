@@ -26,7 +26,7 @@ case class GreaterThenExpressionParser(gtParam: String = "-gt") extends Expressi
       throw new IllegalArgumentException(s"Ending must be $gtParam")
     if (values.isEmpty)
       return Empty
-    val maxValue = values.map(BigDecimal(_)).max
+    val maxValue = values.map(Integer.valueOf(_)).max
     GreaterThen(key.substring(0, key.length - gtParam.length), maxValue)
   }
 

@@ -60,11 +60,11 @@ class QueryParserSpec extends Specification {
     )
     parser.parse(query) shouldEqual Query(where =
       And(
-        GreaterThenEquals("e", BigDecimal(100)),
-        GreaterThen("d", BigDecimal(90)),
-        LessThenEquals("c", BigDecimal(100)),
+        GreaterThenEquals("e", 100),
+        GreaterThen("d", 90),
+        LessThenEquals("c", 100),
         NotEquals("a", "A"),
-        LessThen("b", BigDecimal(10)),
+        LessThen("b", 10),
         Equals("f", "B")
       )
     )

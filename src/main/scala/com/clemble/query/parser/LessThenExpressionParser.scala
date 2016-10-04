@@ -26,7 +26,7 @@ case class LessThenExpressionParser(ltParam: String = "-lt") extends ExpressionP
       throw new IllegalArgumentException(s"Ending must be $ltParam")
     if (values.isEmpty)
       return Empty
-    val maxValue = values.map(BigDecimal(_)).min
+    val maxValue = values.map(Integer.valueOf(_)).min
     LessThen(key.substring(0, key.length - ltParam.length), maxValue)
   }
 

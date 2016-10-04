@@ -15,8 +15,8 @@ class GreaterThenEqualsExpressionParserSpec extends Specification{
 
   "reads values" in {
     parser("some-gte" -> Seq()) shouldEqual Empty
-    parser("some-gte" -> Seq("100")) shouldEqual GreaterThenEquals("some", BigDecimal(100))
-    parser("some-gte" -> Seq("100", "190")) shouldEqual GreaterThenEquals("some", BigDecimal(190))
+    parser("some-gte" -> Seq("100")) shouldEqual GreaterThenEquals("some", 100)
+    parser("some-gte" -> Seq("100", "190")) shouldEqual GreaterThenEquals("some", 190)
   }
 
   "invalidates" in {

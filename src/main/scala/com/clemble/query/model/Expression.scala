@@ -54,10 +54,13 @@ case class NotEquals(field: String, value: String) extends Expression
 
 sealed trait ArithmeticExpression extends Expression
 
-case class GreaterThen(field: String, value: BigDecimal) extends ArithmeticExpression
-case class GreaterThenEquals(field: String, value: BigDecimal) extends ArithmeticExpression
-case class LessThen(field: String, value: BigDecimal) extends ArithmeticExpression
-case class LessThenEquals(field: String, value: BigDecimal) extends ArithmeticExpression
+case class IntEquals(field: String, value: Int) extends ArithmeticExpression
+case class IntNotEquals(field: String, value: Int) extends ArithmeticExpression
+
+case class GreaterThen(field: String, value: Int) extends ArithmeticExpression
+case class GreaterThenEquals(field: String, value: Int) extends ArithmeticExpression
+case class LessThen(field: String, value: Int) extends ArithmeticExpression
+case class LessThenEquals(field: String, value: Int) extends ArithmeticExpression
 
 object Expression {
 
@@ -68,17 +71,20 @@ object Expression {
       def is(value: String) = Equals(field, value)
       def not(value: String) = NotEquals(field, value)
 
-      def gt(value: BigDecimal) = GreaterThen(field, value)
-      def >(value: BigDecimal) = GreaterThen(field, value)
+      def is(value: Int) = IntEquals(field, value)
+      def not(value: Int) = IntNotEquals(field, value)
 
-      def gte(value: BigDecimal) = GreaterThenEquals(field, value)
-      def >=(value: BigDecimal) = GreaterThenEquals(field, value)
+      def gt(value: Int) = GreaterThen(field, value)
+      def >(value: Int) = GreaterThen(field, value)
 
-      def lt(value: BigDecimal) = LessThen(field, value)
-      def <(value: BigDecimal) = LessThen(field, value)
+      def gte(value: Int) = GreaterThenEquals(field, value)
+      def >=(value: Int) = GreaterThenEquals(field, value)
 
-      def lte(value: BigDecimal) = LessThenEquals(field, value)
-      def <=(value: BigDecimal) = LessThenEquals(field, value)
+      def lt(value: Int) = LessThen(field, value)
+      def <(value: Int) = LessThen(field, value)
+
+      def lte(value: Int) = LessThenEquals(field, value)
+      def <=(value: Int) = LessThenEquals(field, value)
     }
 
   }

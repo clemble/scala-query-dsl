@@ -74,6 +74,10 @@ class MongoJSONQueryTranslator extends QueryTranslator[JsObject, JsObject] {
         Json.obj(field -> Json.obj("$ne" -> value))
       case Equals(field, value) =>
         Json.obj(field -> value)
+      case IntEquals(field, value) =>
+        Json.obj(field -> value)
+      case IntNotEquals(field, value) =>
+        Json.obj(field -> Json.obj("$ne" -> value))
       case LessThen(field, value) =>
         Json.obj(field -> Json.obj("$lt" ->JsNumber(value)))
       case LessThenEquals(field, value) =>

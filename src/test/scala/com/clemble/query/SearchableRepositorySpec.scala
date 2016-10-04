@@ -21,6 +21,11 @@ case class Employee(
   override def compare(that: Employee): Int = name.compareTo(that.name)
 }
 
+object EmployeeExpressionBuilder {
+  val name = StringField("name")
+  val salary = IntField("salary")
+}
+
 // Following https://groups.google.com/forum/#!topic/specs2-users/6PEkpAzT080
 trait BeforeAfterAllStopOnError extends SpecificationStructure with FragmentsFactory {
   def beforeAll
@@ -105,6 +110,8 @@ trait QueryFactorySpecification extends QuerySpecification {
 
 trait QuerySpecification extends Specification with BeforeAfterAllStopOnError {
 
+  import EmployeeExpressionBuilder._
+
   val employees = List(
     Employee("A", 100),
     Employee("B", 120),
@@ -155,7 +162,18 @@ trait QuerySpecification extends Specification with BeforeAfterAllStopOnError {
       val failedToSerialize = for {
         emp <- employees
       } yield {
-        val empByName = readAsList(Query(Equals("name", emp.name)))
+        val empByName = readAsList(Query(name is emp.name))
+        if (empByName != List(emp)) Some(emp.name) else None
+      }
+      failedToSerialize.flatten aka "failed to find" shouldEqual Nil
+    }
+
+    "find by salary" in {
+      val failedToSerialize = for {
+        emp <- employees
+      } yield {
+
+        val empByName = readAsList(Query(salary is emp.salary))
         if (empByName != List(emp)) Some(emp.name) else None
       }
       failedToSerialize.flatten aka "failed to find" shouldEqual Nil
@@ -169,7 +187,16 @@ trait QuerySpecification extends Specification with BeforeAfterAllStopOnError {
       for {
         emp <- employees
       } yield {
-        val empByName = readAsList(Query(NotEquals("name", emp.name)))
+        val empByName = readAsList(Query(name not emp.name))
+        empByName should containTheSameElementsAs(employees.filterNot(_ == emp))
+      }
+    }
+
+    "exclude by salary" in {
+      for {
+        emp <- employees
+      } yield {
+        val empByName = readAsList(Query(salary not emp.salary))
         empByName should containTheSameElementsAs(employees.filterNot(_ == emp))
       }
     }
@@ -220,12 +247,12 @@ trait QuerySpecification extends Specification with BeforeAfterAllStopOnError {
   "sort query" should {
 
     "sort ASC" in {
-      val firstSortedAsc = readOne(Query(Empty, sort = List(Ascending("name"))))
+      val firstSortedAsc = readOne(Query(Empty, sort = List(name.asc)))
       firstSortedAsc shouldEqual Some(employees.head)
     }
 
     "sort DESC" in {
-      val firstSortedDesc = readOne(Query(Empty, sort = List(Descending("name"))))
+      val firstSortedDesc = readOne(Query(Empty, sort = List(name.desc)))
       firstSortedDesc shouldEqual Some(employees.last)
     }
 
@@ -235,13 +262,13 @@ trait QuerySpecification extends Specification with BeforeAfterAllStopOnError {
 
     "less then 120 return only head" in {
       val onlyFirst = List(employees.head)
-      val lessThenSecond = readAsList(Query(LessThen("salary", 120)))
+      val lessThenSecond = readAsList(Query(salary < 120))
       lessThenSecond shouldEqual onlyFirst
     }
 
     "less then equals 120 return first 2 elements and value" in {
       val firstAndLast = List(employees.head, employees.tail.head)
-      val lessThenEqualsSecond = readAsList(Query(LessThenEquals("salary", 120)))
+      val lessThenEqualsSecond = readAsList(Query(salary <= 120))
       lessThenEqualsSecond should containTheSameElementsAs(firstAndLast)
     }
 
@@ -251,13 +278,13 @@ trait QuerySpecification extends Specification with BeforeAfterAllStopOnError {
 
     "greater then 150 return only last" in {
       val onlyLast = List(employees.last)
-      val greaterThenLast = readAsList(Query(GreaterThen("salary", 150)))
+      val greaterThenLast = readAsList(Query(salary > 150))
       greaterThenLast shouldEqual onlyLast
     }
 
     "greater then equals 150 return last and 1 before" in {
       val lastTwo = employees.reverse.take(2)
-      val greaterThenLast = readAsList(Query(GreaterThenEquals("salary", 150)))
+      val greaterThenLast = readAsList(Query(salary >= 150))
       greaterThenLast should containTheSameElementsAs(lastTwo)
     }
 
@@ -266,12 +293,12 @@ trait QuerySpecification extends Specification with BeforeAfterAllStopOnError {
   "Sort" should {
 
     "sort Ascending" in {
-      val sortedAscending = readAsList(Query(Empty, sort = List(Ascending("name"))))
+      val sortedAscending = readAsList(Query(Empty, sort = List(name.asc)))
       sortedAscending shouldEqual employees
     }
 
     "sort Descending" in {
-      val sortedDescending = readAsList(Query(Empty, sort = List(Descending("name"))))
+      val sortedDescending = readAsList(Query(Empty, sort = List(name.desc)))
       sortedDescending shouldEqual employees.reverse
     }
 
@@ -280,17 +307,17 @@ trait QuerySpecification extends Specification with BeforeAfterAllStopOnError {
   "Pagination" should {
 
     "Return only 1" in {
-      val askForSingle = readAsList(Query(Empty, sort = List(Ascending("name")), pagination = PaginationParams(0, 1)))
+      val askForSingle = readAsList(Query(Empty, sort = List(name.asc), pagination = PaginationParams(0, 1)))
       askForSingle shouldEqual List(employees.head)
     }
 
     "Return 2" in {
-      val askForTwo = readAsList(Query(Empty, sort = List(Ascending("name")), pagination = PaginationParams(0, 2)))
+      val askForTwo = readAsList(Query(Empty, sort = List(name.asc), pagination = PaginationParams(0, 2)))
       askForTwo should containTheSameElementsAs(employees.take(2))
     }
 
     "Read next page" in {
-      val askForSingle = readAsList(Query(Empty, sort = List(Ascending("name")), pagination = PaginationParams(1, 1)))
+      val askForSingle = readAsList(Query(Empty, sort = List(name.asc), pagination = PaginationParams(1, 1)))
       askForSingle shouldEqual List(employees(1))
     }
 
@@ -299,17 +326,17 @@ trait QuerySpecification extends Specification with BeforeAfterAllStopOnError {
   "And" should {
 
     "combine less then" in {
-      val lessThen = readAsList(Query(And(LessThen("salary", 150), LessThen("salary", 110))))
+      val lessThen = readAsList(Query(salary < 150 and salary < 110))
       lessThen shouldEqual List(employees.head)
     }
 
     "combine greater then" in {
-      val greaterThen = readAsList(Query(And(GreaterThen("salary", 150), GreaterThen("salary", 110))))
+      val greaterThen = readAsList(Query(salary > 150 and salary > 110))
       greaterThen shouldEqual List(employees.last)
     }
 
     "take in between" in {
-      val lessThen = readAsList(Query(And(LessThen("salary", 130), GreaterThen("salary", 100))))
+      val lessThen = readAsList(Query(salary < 130 and salary > 100))
       lessThen shouldEqual List(employees(1))
     }
 
@@ -318,7 +345,7 @@ trait QuerySpecification extends Specification with BeforeAfterAllStopOnError {
   "Or" should {
 
     "combine greater and less in" in {
-      val firstAndLast = readAsList(Query(Or(GreaterThen("salary", 150), LessThen("salary", 110))))
+      val firstAndLast = readAsList(Query(salary > 150 or salary < 110))
       firstAndLast should containTheSameElementsAs(List(employees.head, employees.last))
     }
 

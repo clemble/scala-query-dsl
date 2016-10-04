@@ -95,6 +95,10 @@ class ElasticSearchQueryTranslator extends QueryTranslator[QueryDefinition, List
         not(termQuery(field, value))
       case Equals(field, value) =>
         termQuery(field, value)
+      case IntEquals(field, value) =>
+        termQuery(field, value)
+      case IntNotEquals(field, value) =>
+        not(termQuery(field, value))
       case LessThen(field, value) =>
         rangeQuery(field).lte(value.toString()).includeUpper(false)
       case LessThenEquals(field, value) =>

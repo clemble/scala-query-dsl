@@ -15,8 +15,8 @@ class LessThenEqualsExpressionParserSpec extends Specification {
 
   "reads values" in {
     parser("some-lte" -> Seq()) shouldEqual Empty
-    parser("some-lte" -> Seq("100")) shouldEqual LessThenEquals("some", BigDecimal(100))
-    parser("some-lte" -> Seq("100", "190")) shouldEqual LessThenEquals("some", BigDecimal(100))
+    parser("some-lte" -> Seq("100")) shouldEqual LessThenEquals("some", 100)
+    parser("some-lte" -> Seq("100", "190")) shouldEqual LessThenEquals("some", 100)
   }
 
   "invalidates" in {

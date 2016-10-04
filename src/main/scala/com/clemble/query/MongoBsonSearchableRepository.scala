@@ -67,12 +67,22 @@ class MongoBSONQueryTranslator extends QueryTranslator[BSONDocument, BSONDocumen
     query match {
       case And(conditions) =>
         BSONDocument(conditions.map(translate).flatMap(obj => obj.elements))
+
       case Or(conditions) =>
         BSONDocument("$or" -> conditions.map(translate))
+
       case NotEquals(field, value) =>
         BSONDocument(field -> BSONDocument("$ne" -> value))
+
       case Equals(field, value) =>
         BSONDocument(field -> value)
+
+      case IntEquals(field, value) =>
+        BSONDocument(field -> BSONDouble(value.toDouble))
+
+      case IntNotEquals(field, value) =>
+        BSONDocument(field -> BSONDocument("$ne" -> BSONDouble(value.toDouble)))
+
       case LessThen(field, value) =>
         BSONDocument(field -> BSONDocument("$lt" -> BSONInteger(value.toInt)))
       case LessThenEquals(field, value) =>

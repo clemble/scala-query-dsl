@@ -14,23 +14,23 @@ class ExpressionBuilderSpec extends Specification{
   }
 
   "less then" in {
-    "a" < BigDecimal(1) shouldEqual LessThen("a", BigDecimal(1))
-    "a" lt BigDecimal(1) shouldEqual LessThen("a", BigDecimal(1))
+    "a" < 1 shouldEqual LessThen("a", 1)
+    "a" lt 1 shouldEqual LessThen("a", 1)
   }
 
   "less then equal" in {
-    "a" <= BigDecimal(1) shouldEqual LessThenEquals("a", BigDecimal(1))
-    "a" lte BigDecimal(1) shouldEqual LessThenEquals("a", BigDecimal(1))
+    "a" <= 1 shouldEqual LessThenEquals("a", 1)
+    "a" lte 1 shouldEqual LessThenEquals("a", 1)
   }
 
   "greater then" in {
-    "a" > BigDecimal(1) shouldEqual GreaterThen("a", BigDecimal(1))
-    "a" gt BigDecimal(1) shouldEqual GreaterThen("a", BigDecimal(1))
+    "a" > 1 shouldEqual GreaterThen("a", 1)
+    "a" gt 1 shouldEqual GreaterThen("a", 1)
   }
 
   "greater then equal" in {
-    "a" >= BigDecimal(1) shouldEqual GreaterThenEquals("a", BigDecimal(1))
-    "a" gte BigDecimal(1) shouldEqual GreaterThenEquals("a", BigDecimal(1))
+    "a" >= 1 shouldEqual GreaterThenEquals("a", 1)
+    "a" gte 1 shouldEqual GreaterThenEquals("a", 1)
   }
 
   "composition" in {
